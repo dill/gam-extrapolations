@@ -71,5 +71,7 @@ pred_and_plot(b_weights)
 
 
 
-
+## Simon's trick -- add in the x1 and x2 terms again
+b_ex <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5), k=30) + x1 + x2, data=dat, method="REML")
+pred_and_plot(b_ex)
 
