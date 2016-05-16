@@ -52,12 +52,12 @@ b5 <- gam(y~s(x, m=1, k=k*2), method="REML", knots= list(x=seq(min_exp, max_exp,
 b6 <- gam(y~s(x, m=2, k=k*2), method="REML", knots= list(x=seq(min_exp, max_exp, length=k*2)))
 
 
-fv1 <- predict(b1,pd,se=TRUE)
-fv2 <- predict(b2,pd,se=TRUE)
-fv3 <- predict(b3,pd,se=TRUE)
-fv4 <- predict(b4,pd,se=TRUE)
-fv5 <- predict(b5,pd,se=TRUE)
-fv6 <- predict(b6,pd,se=TRUE)
+#fv1 <- predict(b1,pd,se=TRUE)
+#fv2 <- predict(b2,pd,se=TRUE)
+#fv3 <- predict(b3,pd,se=TRUE)
+#fv4 <- predict(b4,pd,se=TRUE)
+#fv5 <- predict(b5,pd,se=TRUE)
+#fv6 <- predict(b6,pd,se=TRUE)
 
 
 par(mfrow=c(2,3))
@@ -70,73 +70,44 @@ if(func_type != 4){
   ylim <- c(-50, 50)
 }
 
-## black order 2 penalty...
-ll <- fv1$fit-fv1$se.fit*2;ul <- fv1$fit+fv1$se.fit*2
-post_sim = sim_post_curves(b1,pd,n_sims)
-plot(pd$x,fv1$fit,ylim=ylim,type="l",xlab="x",ylab="y",
-     main  ="gam(y~s(x,m=2,k=k))",lwd=2)
-lines(pd$x,ll,lty=2,lwd=2);lines(pd$x,ul,lty=2,lwd=2)
-matlines(pd$x, post_sim, col=alpha("black",0.25),lty=1)
-points(x,y,pch=19,cex=.4)
 
-## blue order 2 penalty + pseudodata...
-ll <- fv4$fit-fv4$se.fit*2;ul <- fv4$fit+fv4$se.fit*2
-post_sim = sim_post_curves(b4,pd,n_sims)
-plot(pd$x,fv4$fit,type="l",ylim=ylim,xlab="x",ylab="y",
-     main  ="gam(y~s(x,m=2,k=k*2),\nweights=w, data=dat_psuedo)",
-     col=4,lwd=2)
-lines(pd$x,ll,lty=2,col=4,lwd=2);lines(pd$x,ul,lty=2,col=4,lwd=2)
-matlines(pd$x, post_sim, col=alpha(4,0.25),lty=1)
-points(x,y,pch=19,cex=.4)
+plotter <- function(model, pd, n_sims){
 
-## light blue order 2 penalty + extended knots...
-ll <- fv6$fit-fv6$se.fit*2;ul <- fv6$fit+fv6$se.fit*2
-post_sim = sim_post_curves(b6,pd,n_sims)
-plot(pd$x,fv6$fit,type="l",ylim=ylim,xlab="x",ylab="y",
-     main  ="gam(y~s(x,m=2,k=k*2),\nknots= seq(min_exp,max_exp,length=k*2)",
-     col="lightblue2",lwd=2)
-lines(pd$x,ll,lty=2,col="lightblue2",lwd=2);lines(pd$x,ul,lty=2,col="lightblue2",lwd=2)
-matlines(pd$x, post_sim, col=alpha("lightblue2",0.25),lty=1)
-points(x,y,pch=19,cex=.4)
+  title <- model$title
+  model <- model$model
 
-## red order 1 penalty + linear effect...
-ll <- fv2$fit-fv2$se.fit*2;ul <- fv2$fit+fv2$se.fit*2
-post_sim = sim_post_curves(b2,pd,n_sims)
-plot(pd$x,fv2$fit,ylim=ylim,type="l",xlab="x",ylab="y",
-     main  ="gam(y~s(x,m=1,k=k)+x)",col=2,lwd=2)
-lines(pd$x,ll,lty=2,col=2,lwd=2);lines(pd$x,ul,lty=2,
-                                       col=2,lwd=2)
-matlines(pd$x, post_sim, col=alpha(2,0.25),lty=1)
-points(x,y,pch=19,cex=.4)
+  fv1 <- predict(model, pd, se=TRUE)
+  ll <- fv1$fit - fv1$se.fit*2
+  ul <- fv1$fit + fv1$se.fit*2
 
-## dark green order 1 penalty + pseudodata...
-ll <- fv3$fit-fv3$se.fit*2;ul <- fv3$fit+fv3$se.fit*2
-post_sim = sim_post_curves(b3,pd,n_sims)
-plot(pd$x,fv3$fit,type="l",ylim=ylim,xlab="x",ylab="y",
-     main  ="gam(y~s(x,m=1,k=k*2),\nweights=w,data=dat_psuedo)",
-     col="green4",lwd=2)
-lines(pd$x,ll,lty=2,col="green4",lwd=2);lines(pd$x,ul,lty=2,col="green4",lwd=2)
-matlines(pd$x, post_sim, col=alpha("green4",0.25),lty=1)
-points(x,y,pch=19,cex=.4)
+  post_sim <- sim_post_curves(model, pd, n_sims)
 
- 
-## light green order 1 penalty + extended knots...
-ll <- fv5$fit-fv5$se.fit*2;ul <- fv5$fit+fv5$se.fit*2
-post_sim = sim_post_curves(b5,pd,n_sims)
-plot(pd$x,fv5$fit,type="l",ylim=ylim,xlab="x",ylab="y",
-     main  ="gam(y~s(x,m=1,k=k*2),\nknots= seq(min_exp,max_exp,length=k*2)",
-     col=3,lwd=2)
-lines(pd$x,ll,lty=2,col=3,lwd=2);lines(pd$x,ul,lty=2,col=3,lwd=2)
-matlines(pd$x, post_sim, col=alpha(3,0.25),lty=1)
-points(x,y,pch=19,cex=.4)
+  plot(pd$x,fv1$fit,ylim=ylim,type="l",xlab="x",ylab="y",
+       main = title,lwd=2, col="blue")
+  lines(pd$x,ll,lty=2,lwd=2, col="blue")
+  lines(pd$x,ul,lty=2,lwd=2, col="blue")
+  matlines(pd$x, post_sim, col=alpha("black",0.25),lty=1)
+  points(x,y,pch=19,cex=.25, col="red")
 
-##testing computation time for each extrapolation solution (assuming m=1):
-#linear_trend_time = microbenchmark(gam(y~s(x,m=1,k=k)+x,method="REML"),times = 25,unit = "ms")
-#pseudodata_time  = microbenchmark(gam(y~s(x,m=1,k=k*2),weights=w,
-#                                      data=dat_psuedo,method="REML"),
-#                                  times = 25,unit = "ms")
-#ext_knots_time  = microbenchmark(gam(y~s(x,m=1,k=k*2),method="REML",
-#                                     knots= list(x=seq(min_exp,max_exp,length=k*2))),
-#                                  times = 25,unit = "ms")
+}
+
+models <- list(
+  list(model=b1, title="gam(y~s(x,m=2,k=k))"),
+  list(model=b2, title="gam(y~s(x,m=2,k=k*2),\nweights=w, data=dat_psuedo)"),
+  list(model=b3, title="gam(y~s(x,m=2,k=k*2),\nknots= seq(min_exp,max_exp,length=k*2)"),
+  list(model=b4, title="gam(y~s(x,m=1,k=k)+x)"),
+  list(model=b5, title="gam(y~s(x,m=1,k=k*2),\nweights=w,data=dat_psuedo)"),
+  list(model=b6, title="gam(y~s(x,m=1,k=k*2),\nknots= seq(min_exp,max_exp,length=k*2)"))
+
+ll <- lapply(models, plotter, pd=pd, n_sims=n_sims)
+
+#testing computation time for each extrapolation solution (assuming m=1):
+linear_trend_time = microbenchmark(gam(y~s(x,m=1,k=k)+x,method="REML"),times = 25,unit = "ms")
+pseudodata_time  = microbenchmark(gam(y~s(x,m=1,k=k*2),weights=w,
+                                      data=dat_psuedo,method="REML"),
+                                  times = 25,unit = "ms")
+ext_knots_time  = microbenchmark(gam(y~s(x,m=1,k=k*2),method="REML",
+                                     knots= list(x=seq(min_exp,max_exp,length=k*2))),
+                                  times = 25,unit = "ms")
 
 
