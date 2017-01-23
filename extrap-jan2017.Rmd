@@ -1,0 +1,133 @@
+---
+title: Further extrapolation investigations -- one dimension
+author: David L Miller and Simon N Wood
+date: 13 January 2017
+
+---
+
+We would like to extrapolate but want to do something sensible when we do. What do we mean by "sensible"?
+
+1. the mean effect tends to something really simple like a constant,
+2. the variance reflecting our uncertainty that this is really right (i.e., increasing with distance from the data.
+
+Thin plate splines with second derivative penalties ($m=2$) achieve 2. but not 1., their effects head off to $\pm\infty$. Using first order penalties ($m=1$) leads to 1. but then violates 2. as confidence intervals become flat. The first order behaviour is down to the penalty being integrated over $(-\infty,\infty)$ -- the smooth *must* have zero gradient except over a finite interval around the data, or the penalty will be infinite.
+
+The mean effect for the first order seems right, so how can we get the "right" uncertainty behaviour? We should integrate a first derivative based smoothing penalty over the range that we are interested in predicting over.
+
+If we only integrate the penalty over the range of the data (B-spline, `bs="bs"` default) then we are saying that we have no prior information outside the range of the data, which is a bit silly. So we assume that the same prior applies over the extrapolation range that applies over the data range (otherwise what on earth are we doing?) but not that the same prior applies over the entire range of values of the covariate (including the completely impossible ones).
+
+Technically this is achieved by supplying knots to a B-spline (`"bs"`) basis, in which the "inner" knots cover the covariate range over which we want to predict/the penalty to apply. We can set things up so that all but the other 2 inner knots actually just cover the range of the data (see definition of `xk` below).
+
+
+```{r}
+require(mgcv)
+## test function
+f3 <- function(x2) 0.2 * x2^11 * (10 * (1 - x2))^6 + 10 * (10 * x2)^3 * 
+              (1 - x2)^10
+
+## simulate test x,y data...
+n <- 100
+x <- runif(n)
+y <- f3(x) + rnorm(n)*2
+
+## case 1. outer range (-.5,1.5) one outer knot at each end
+pd <- data.frame(x=seq(-.8,1.8,length=200))
+m <- c(3,1) ## cubic b-splines, first order derivative penalty
+k <- 20 ## basis dimension
+xoo <- c(-1,2) ## interval for all knots defining basis functions
+xo <- c(-.5,1.5) ## interval over which to evaluate penalty
+xi <- c(0,1) ## interval within which data and most of knots lie
+
+# abstract out plotting
+plot_thing <- function(model, pd, col, uc=FALSE){
+  fv <- predict(model, pd, se=TRUE, unconditional=uc)
+  ## plot curve over data...
+  ul <- fv$fit + 2*fv$se.fit
+  ll <- fv$fit - 2*fv$se.fit
+  lines(pd$x,fv$fit,col=col)
+  lines(pd$x,ul,lty=2,col=col)
+  lines(pd$x,ll,lty=2,col=col)
+  suppressWarnings(rug(model$smooth[[1]]$knots, col=col, lwd=1))
+}
+
+## get knot sequence....
+xk <- c(seq(xoo[1],xo[1],length=m[1]+1),
+        seq(xi[1],xi[2],length=k-m[1] - 1),
+        seq(xo[2],xoo[2],length=m[1]+1))
+b <- gam(y~s(x,bs="bs",m=m,k=k),knots=list(x=xk),method="ML")
+
+
+## case 2. outer range (-.2,1.2)...
+xo <- c(-.2,1.2)
+xk <- c(seq(xoo[1],xo[1],length=m[1]+1),
+        seq(xi[1],xi[2],length=k-m[1] - 1),
+        seq(xo[2],xoo[2],length=m[1]+1))
+b_outer1 <- gam(y~s(x,bs="bs",m=m,k=k),knots=list(x=xk),method="ML")
+
+
+## case 3. outer range (-.5,1.5), even spacing...
+b_outer2 <- gam(y~s(x,bs="bs",m=m,k=k),knots=list(x=c(-.5,1.5)),method="ML")
+```
+
+```{r fig.width=10, echo=FALSE}
+layout(matrix(c(1,2),1,2), widths=c(2,1))
+
+# zoom out
+plot(x, y, xlim=c(-1, 2), ylim=c(-30, 30), pch=19, cex=0.4)
+plot_thing(b, pd, "black")
+plot_thing(b_outer1, pd, "blue")
+plot_thing(b_outer2, pd, "red")
+
+# zoom in
+plot(x, y, xlim=c(-0.1, 1.1),ylim=c(-10, 15), pch=19, cex=0.4)
+plot_thing(b, pd, "black")
+plot_thing(b_outer1, pd, "blue")
+plot_thing(b_outer2, pd, "red")
+```
+
+Above plot shows the same data/models in both panels (right just zoomed to show the fit to the data). Black shows the default B-spline behaviour, blue using knots in the range $(-0.2, 1.2)$ with fewer knots in the "outer" region, red with regular knot placement between $(-0.5, 1.5)$ (knots placement is shown in the rug plots).
+
+## Comparison to TPRS
+
+Comparing this to equivalent thin plate spline fits... Plots are as above, but removing the black default behaviour of the `"bs"` basis and including the thin plate splines in green.
+
+### with $m=2$
+
+```{r fig.width=10, echo=FALSE}
+layout(matrix(c(1,2),1,2), widths=c(2,1))
+
+b_tprs <- gam(y~s(x, bs="tp", m=2, k=k),method="ML")
+
+# zoom out
+plot(x, y, xlim=c(-1, 2), ylim=c(-30, 30), pch=19, cex=0.4)
+plot_thing(b_tprs, pd, "green")
+plot_thing(b_outer1, pd, "blue")
+plot_thing(b_outer2, pd, "red")
+
+# zoom in
+plot(x, y, xlim=c(-0.1, 1.1),ylim=c(-10, 15), pch=19, cex=0.4)
+plot_thing(b_tprs, pd, "green")
+plot_thing(b_outer1, pd, "blue")
+plot_thing(b_outer2, pd, "red")
+```
+
+### with $m=1$
+
+```{r fig.width=10, echo=FALSE}
+layout(matrix(c(1,2),1,2), widths=c(2,1))
+
+b_tprs <- gam(y~s(x, bs="tp", m=1, k=k),method="ML")
+
+# zoom out
+plot(x, y, xlim=c(-1, 2), ylim=c(-30, 30), pch=19, cex=0.4)
+plot_thing(b_tprs, pd, "green")
+plot_thing(b_outer1, pd, "blue")
+plot_thing(b_outer2, pd, "red")
+
+# zoom in
+plot(x, y, xlim=c(-0.1, 1.1),ylim=c(-10, 15), pch=19, cex=0.4)
+plot_thing(b_tprs, pd, "green")
+plot_thing(b_outer1, pd, "blue")
+plot_thing(b_outer2, pd, "red")
+```
+
