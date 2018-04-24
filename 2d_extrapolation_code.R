@@ -2,7 +2,7 @@
 
 library(mvtnorm)
 library(mgcv)
-library(rgl)
+#library(rgl)
 
 set.seed(123)
 
@@ -54,24 +54,24 @@ pred_and_plot <- function(model){
 
 # tprs fit
 b_tprs <- gam(y~s(x1, x2), data=dat,  method="REML")
-pred_and_plot(b_tprs)
+#pred_and_plot(b_tprs)
 
 ### Duchon fit (s=0.5)
 b_duchon <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5)), data=dat, method="REML")
-pred_and_plot(b_duchon)
+#pred_and_plot(b_duchon)
 
-## use Eric's trick -- extra zero-weight data
-xtra <- expand.grid(x1=c(-10, 10), x2=c(-10, 10))
-xtra$y <- 1e6
-dat2  <-  rbind(dat[,c("x1", "x2", "y")],
-                xtra)
-b_weights <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5)), data=dat2, method="REML",
-                 weights=c(rep(1, nrow(dat)), rep(0, nrow(xtra)) ))
-pred_and_plot(b_weights)
-
-
-
-## Simon's trick -- add in the x1 and x2 terms again
-b_ex <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5), k=30) + x1 + x2, data=dat, method="REML")
-pred_and_plot(b_ex)
-
+### use Eric's trick -- extra zero-weight data
+#xtra <- expand.grid(x1=c(-10, 10), x2=c(-10, 10))
+#xtra$y <- 1e6
+#dat2  <-  rbind(dat[,c("x1", "x2", "y")],
+#                xtra)
+#b_weights <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5)), data=dat2, method="REML",
+#                 weights=c(rep(1, nrow(dat)), rep(0, nrow(xtra)) ))
+#pred_and_plot(b_weights)
+#
+#
+#
+### Simon's trick -- add in the x1 and x2 terms again
+#b_ex <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5), k=30) + x1 + x2, data=dat, method="REML")
+#pred_and_plot(b_ex)
+#

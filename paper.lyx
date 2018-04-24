@@ -1,0 +1,2730 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\setcitestyle{round}
+\end_preamble
+\use_default_options true
+\begin_modules
+knitr
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command bibtex
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+On extrapolation using splines
+\end_layout
+
+\begin_layout Author
+David L Miller
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+and
+\end_layout
+
+\end_inset
+
+ Eric J Pedersen
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+and
+\end_layout
+
+\end_inset
+
+ Simon N Wood
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Address
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+Centre for Research into Ecological & Environmental Modelling and School
+ of Mathematics & Statistics, University of St
+\begin_inset space ~
+\end_inset
+
+Andrews, St
+\begin_inset space ~
+\end_inset
+
+Andrews, Fife, Scotland
+\begin_inset Newline newline
+\end_inset
+
+2 Fisheries and Oceans Canada, Newfoundland and Labrador Region, Canada
+ and Department of Biology, Memorial University St.
+ John's, Newfoundland, Canada
+\begin_inset Newline newline
+\end_inset
+
+3 School of Mathematics, University of Bristol, Bristol, UK
+\end_layout
+
+\begin_layout Abstract
+It is generally considered a bad idea to extrapolate from a model, quite
+ what 
+\begin_inset Quotes eld
+\end_inset
+
+extrapolation
+\begin_inset Quotes erd
+\end_inset
+
+ means is a topic of some debate and regardless of definition investigators
+ extrapolate to some extent regularly.
+ If extrapolation does occur we'd prefer it to happen in the 
+\begin_inset Quotes eld
+\end_inset
+
+safest
+\begin_inset Quotes erd
+\end_inset
+
+ way possible, with investigators understanding the properties of the model
+ at hand.
+ Here we review the mean and uncertainty properties of current, commonly-used,
+ smoothers when they are used to extrapolate beyond the range of the data
+ and suggest some properties that are desirable (at least when modelling
+ the distributions of biological populations from survey data).
+ We then go on to suggest some modifications of the current methods that
+ provide our desirable properties.
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+Out-of-sample inference from models is fraught with problems.
+ Just because a model performs well within the bounds of the current data
+ is no guarantee that it will behave well with new data, where covariate
+ values are different.
+ The term 
+\begin_inset Quotes eld
+\end_inset
+
+extrapolation
+\begin_inset Quotes erd
+\end_inset
+
+ encompases predictions both near and far from the data that was collected.
+ It seems clear that the further the new prediction point is from the data
+ the worse the performance will be, but there are no hard-and-fast rules
+ for what counts as 
+\begin_inset Quotes eld
+\end_inset
+
+okay
+\begin_inset Quotes erd
+\end_inset
+
+.
+ For various reasons make these small or large extrapolations, either excusing
+ or ignoring the potential issues that can occur.
+ What is clear is that the exact properties of smoothers have not been explored
+ in practice when extrapolation takes place.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+literature review
+\end_layout
+
+\end_inset
+
+Extrapolation is usually understood to be making predictions outside the
+ 
+\shape italic
+range
+\shape default
+ of the data, though there is a case for considering gaps within the range
+ of data where no observations were made 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "conn2015onextrapolating"
+literal "true"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Here we look at the properties of smoothers in a generalized additive modelling
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "wood2017generalized2,ruppert2003semiparametric"
+literal "false"
+
+\end_inset
+
+context.
+ GAMs represent a very flexible modelling framework encompassing a multitude
+ of different model structures and a large variety of possible response
+ distributions.
+ Models are of the form:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+g(\mu_{i})=\bm{A}_{i}\bm{\theta}+s_{1}(x_{1i})+s_{2}(x_{2i})+s_{3}(x_{3i},x_{4i})+\ldots\label{eq:gam}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\mu_{i}\equiv\mathbb{E}(Y_{i})$
+\end_inset
+
+ and 
+\begin_inset Formula $Y_{i}=\text{EF}(\mu_{i},\phi)$
+\end_inset
+
+ where 
+\begin_inset Formula $Y_{i}$
+\end_inset
+
+ (
+\begin_inset Formula $i=1,\ldots,n$
+\end_inset
+
+) is the response and 
+\begin_inset Formula $\text{EF}(\mu_{i},\phi)$
+\end_inset
+
+ indicates an exponential family distribution with mean 
+\begin_inset Formula $\mu_{i}$
+\end_inset
+
+ and scale parameter 
+\begin_inset Formula $\phi$
+\end_inset
+
+.
+ 
+\begin_inset Formula $\bm{A}_{i}$
+\end_inset
+
+ is a row vector of strictly parametric components (i.e., things that look
+ like linear model components) and 
+\begin_inset Formula $\bm{\theta}$
+\end_inset
+
+ are associated coefficients.
+ The 
+\begin_inset Formula $s_{j}$
+\end_inset
+
+s are 
+\begin_inset Quotes eld
+\end_inset
+
+smooth
+\begin_inset Quotes erd
+\end_inset
+
+ functions of one or more of the covariates (
+\begin_inset Formula $x_{1i},x_{2i},x_{3i},x_{4i}$
+\end_inset
+
+, etc).
+ Smooth terms are in turn constructed from sums of simple basis functions
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+before "e.g.,"
+key "deboor1978apractical"
+literal "false"
+
+\end_inset
+
+.
+ In general for some smooth 
+\begin_inset Formula $s$
+\end_inset
+
+ of covariate 
+\begin_inset Formula $x$
+\end_inset
+
+ we have the following decomposition:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+s(x)=\sum_{k=1}^{K}\beta_{k}b_{k}(x),
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $b_{k}$
+\end_inset
+
+ are fixed basis functions and 
+\begin_inset Formula $\beta_{k}$
+\end_inset
+
+ are coefficients to be estimated (one can always augment the design matrix
+ so the parametric and smooth components can be written as a matrix-coefficient
+ vector multiplication, i.e., 
+\begin_inset Formula $\bm{X}\bm{\beta}$
+\end_inset
+
+).
+ Smooths are very flexible and in order to stop the model simply interpolating
+ the data, we penalise the flexibility of each smooth term according to
+ its wiggliness.
+ Such a penalty will be an integral (sometimes a sum) of integrated, squared
+ derivatives of 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ The influence of the penalty on the model fitting is controlled by smoothing
+ parameters, 
+\begin_inset Formula $\bm{\lambda}$
+\end_inset
+
+.
+ We estimate 
+\begin_inset Formula $\bm{\beta},\bm{\lambda}$
+\end_inset
+
+ via REstricted Maximum Likelihood or Marginal Likelihood 
+\begin_inset CommandInset citation
+LatexCommand citep
+before "REML or ML;"
+key "wood2011faststable"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+In this paper we will investigate the extrapolation properties of some commonly-
+used smoothers, talk about the properties we think are important for a model
+ that this going to be used to extrapolate and then propose a solution to
+ this issue using B-splines.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Itemize
+What do we even 
+\shape italic
+mean
+\shape default
+ by extrapolation?
+\end_layout
+
+\begin_layout Itemize
+resulting estimates from summary statistics
+\end_layout
+
+\begin_layout Itemize
+interpreting smooths
+\end_layout
+
+\begin_layout Itemize
+uncertainty is important
+\end_layout
+
+\begin_layout Itemize
+examples from Gu and Wahba f3 with 2*N(0,1) noise
+\end_layout
+
+\end_inset
+
+
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+knitr-setup, include=FALSE, echo=FALSE
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# knitr setup
+\end_layout
+
+\begin_layout Plain Layout
+
+library("knitr")
+\end_layout
+
+\begin_layout Plain Layout
+
+opts_chunk$set(cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE, results="hi
+de") 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# set up some simulation options
+\end_layout
+
+\begin_layout Plain Layout
+
+require(mgcv)
+\end_layout
+
+\begin_layout Plain Layout
+
+## test function
+\end_layout
+
+\begin_layout Plain Layout
+
+f3 <- function(x2) 0.2 * x2^11 * (10 * (1 - x2))^6 + 10 * (10 * x2)^3 * 
+\end_layout
+
+\begin_layout Plain Layout
+
+              (1 - x2)^10
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## simulate test x,y data...
+\end_layout
+
+\begin_layout Plain Layout
+
+n <- 100
+\end_layout
+
+\begin_layout Plain Layout
+
+x <- runif(n)
+\end_layout
+
+\begin_layout Plain Layout
+
+y <- f3(x) + rnorm(n)*2
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+pd <- data.frame(x=seq(-1, 2, length=250)) 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# abstract out plotting
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing <- function(model, pd, col, uc=FALSE){
+\end_layout
+
+\begin_layout Plain Layout
+
+  fv <- predict(model, pd, se=TRUE, unconditional=uc)
+\end_layout
+
+\begin_layout Plain Layout
+
+  ## plot curve over data...
+\end_layout
+
+\begin_layout Plain Layout
+
+  ul <- fv$fit + 2*fv$se.fit
+\end_layout
+
+\begin_layout Plain Layout
+
+  ll <- fv$fit - 2*fv$se.fit
+\end_layout
+
+\begin_layout Plain Layout
+
+  lines(pd$x,fv$fit,col=col)
+\end_layout
+
+\begin_layout Plain Layout
+
+  lines(pd$x,ul,lty=2,col=col)
+\end_layout
+
+\begin_layout Plain Layout
+
+  lines(pd$x,ll,lty=2,col=col)
+\end_layout
+
+\begin_layout Plain Layout
+
+  suppressWarnings(rug(model$smooth[[1]]$knots, col=col, lwd=1))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Commonly-used smoothers and their extrapolative properties
+\end_layout
+
+\begin_layout Standard
+We first describe three closely-related approaches to smoothing that are
+ commonly used for both one- and two-dimensional modelling.
+ Here we restrict ourselves to 1 and 2 dimensions as these situations are
+ easier to visualise and are most commonly used in practice (at least within
+ our experience of ecological modelling).
+\end_layout
+
+\begin_layout Subsubsection
+Thin plate regression splines
+\end_layout
+
+\begin_layout Standard
+Thin plate regression splines 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "wood2003thinplate"
+literal "false"
+
+\end_inset
+
+ are a modification of thin plate splines 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "duchon1977splines,wahba1990splinemodels"
+literal "false"
+
+\end_inset
+
+, so we first describe them.
+ Thin plate splines basis functions are made up of two parts, first a set
+ of radial basis functions (
+\begin_inset Formula $\eta_{m,d}$
+\end_inset
+
+) which handle the local part of the modelling and second a set of global
+ orthogonal polynomial functions (
+\begin_inset Formula $\phi_{j}$
+\end_inset
+
+) that take care of the general trend in the data.
+ The penalty for thin plate splines in 
+\begin_inset Formula $d$
+\end_inset
+
+ dimensions (labelled 
+\begin_inset Formula $x_{1}\ldots x_{d}$
+\end_inset
+
+) can be written as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+J_{m,d}=\int\ldots\int_{\mathbb{R}^{d}}\sum_{\nu_{1}+\dots+\nu_{d}=m}\frac{m!}{\nu_{1}!\dots\nu_{d}!}\left(\frac{\partial^{m}s(x_{1},\dots,x_{d})}{\partial x_{1}^{\nu_{1}}\ldots\partial x_{d}^{\nu_{d}}}\right)^{2}\text{d}x_{1}\ldots\text{d}x_{d},\label{eq:tps-full}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $m$
+\end_inset
+
+ is the derivative order and the 
+\begin_inset Formula $\nu_{1},\ldots,\nu_{d}$
+\end_inset
+
+ terms simply ensure that derivatives are taken with respect to all the
+ parameters in all of the necessary combinations.
+ The basis that is the solution to this penalty is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+s(\mathbf{x})=\sum_{i=1}^{n}\delta_{i}\eta_{m,d}(r_{i})+\sum_{j=1}^{M}\alpha_{j}\phi_{j}(\mathbf{x}),\label{eq:rad-basis-functions}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $r_{i}=\lvert\lvert\mathbf{x}-\mathbf{x_{i}}\rvert\rvert$
+\end_inset
+
+ (the Euclidean norm of 
+\begin_inset Formula $\mathbf{x}-\mathbf{x_{i}}$
+\end_inset
+
+) and the 
+\begin_inset Formula $\delta_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $\alpha_{j}$
+\end_inset
+
+ are parameters to be estimated.
+ The 
+\begin_inset Formula $\phi_{j}$
+\end_inset
+
+s are 
+\begin_inset Formula $M=\left(\begin{smallmatrix}m+d-1\\
+d
+\end{smallmatrix}\right)$
+\end_inset
+
+ linearly independent polynomials of degree less than 
+\begin_inset Formula $m$
+\end_inset
+
+ which span the space of polynomials in 
+\begin_inset Formula $\mathbb{R}^{d}$
+\end_inset
+
+; all of the 
+\begin_inset Formula $\phi_{j}$
+\end_inset
+
+s are unpenalized and lie in the nullspace of the penalty.
+ It is also important to note that to maintain continuity in 
+\begin_inset Formula $s$
+\end_inset
+
+, 
+\begin_inset Formula $2m>d$
+\end_inset
+
+, so the dimension of the penalty nullspace increases rapidly with 
+\begin_inset Formula $d$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+J_{m,1}=\int\left(\frac{\partial^{m}s(x_{1})}{\partial x_{1}^{m}}\right)^{2}\text{d}x_{1},\quad\text{ensuring}\quad2m>1
+\]
+
+\end_inset
+
+with the corresponding basis function solution:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+s(x_{1})=\sum_{i=1}^{n}\delta_{i}\eta_{m,1}(r_{i})+\sum_{j=1}^{M}\alpha_{j}\phi_{j}(x_{1}),
+\]
+
+\end_inset
+
+here we'll investigate the case when 
+\begin_inset Formula $m=1$
+\end_inset
+
+ and 
+\begin_inset Formula $m=2$
+\end_inset
+
+ for the unidimensional case, so 
+\begin_inset Formula $\eta_{1,1}(r)=\frac{\Gamma(-1/2)}{4\sqrt{\pi}}r$
+\end_inset
+
+ and 
+\begin_inset Formula $\eta_{2,1}(r)=\frac{\Gamma(-3/2)}{16\sqrt{\pi}}r^{3}$
+\end_inset
+
+ (see 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "wood2003thinplate"
+literal "false"
+
+\end_inset
+
+ for general formula for the radial basis functions).
+ The global polynomials are 
+\begin_inset Formula $\phi_{1}(x_{1})=1$
+\end_inset
+
+ and 
+\begin_inset Formula $\phi_{2}(x_{1})=x_{1}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+In two dimensions the penalty is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+J_{2,2}=\int\int\left(\frac{\partial^{2}s(x_{1},x_{2})}{\partial x_{1}^{2}}\right)^{2}+2\left(\frac{\partial^{2}s(x_{1},x_{2})}{\partial x_{1}\partial x_{2}}\right)^{2}+\left(\frac{\partial^{2}s(x_{1},x_{2})}{\partial x_{2}^{2}}\right)^{2}\text{d}x_{1}\text{d}x_{2},
+\]
+
+\end_inset
+
+with basis functions:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+s(\mathbf{x})=\sum_{i=1}^{n}\delta_{i}\eta_{2,2}(r_{i})+\sum_{j=1}^{3}\alpha_{j}\phi_{j}(\mathbf{x}),\quad\text{where}\quad\eta_{2,2}(r)=\frac{1}{8\pi}r^{2}\log(r).
+\]
+
+\end_inset
+
+The nullspace of the penalty consists of three functions: 
+\begin_inset Formula $\phi_{1}(\mathbf{x})=1$
+\end_inset
+
+, 
+\begin_inset Formula $\phi_{2}(\mathbf{x})=x_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\phi_{3}(\mathbf{x})=x_{2}$
+\end_inset
+
+, which make no contribution to 
+\begin_inset Formula $J_{2,2}$
+\end_inset
+
+.
+ Note we cannot let 
+\begin_inset Formula $m=1$
+\end_inset
+
+ in this case as it will violate the constraint that 
+\begin_inset Formula $2m>d$
+\end_inset
+
+, though we can loosen this constraint using Duchon splines, see below.
+\end_layout
+
+\begin_layout Standard
+The radial basis functions in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:rad-basis-functions"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ sum over 
+\begin_inset Formula $n$
+\end_inset
+
+, making the method overparameterised.
+ To get around this issue we can change the summation to be over 
+\begin_inset Formula $K$
+\end_inset
+
+ knots placed over a range of covariate values.
+ This process can be fraught as there is some element of sensitivity in
+ parameter estimates depending on where the knots are placed.
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "wood2003thinplate"
+
+\end_inset
+
+ proposed using an eigendecomposition of the design matrix for this term
+ and truncating at some appropriate number of 
+\begin_inset Quotes eld
+\end_inset
+
+eigenbasisfunctions
+\begin_inset Quotes erd
+\end_inset
+
+, this approach gives a good approximation to the full basis.
+ We refer to these as 
+\shape italic
+thin plate regression splines
+\shape default
+ (TPRS).
+\end_layout
+
+\begin_layout Standard
+Switching between 
+\begin_inset Formula $m=1$
+\end_inset
+
+ and 
+\begin_inset Formula $m=2$
+\end_inset
+
+ can give rather different uncertainty estimates, as well as mean effect
+ differences.
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:tprs-m1-m2"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows one dimensionals smooth of the test function 
+\begin_inset Quotes eld
+\end_inset
+
+f4
+\begin_inset Quotes erd
+\end_inset
+
+ from 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gu1991minimizing"
+
+\end_inset
+
+ using thin plate regression splines (as implemented using the 
+\family typewriter
+tp
+\family default
+ basis in R package 
+\family typewriter
+mgcv
+\family default
+).
+ As we'll discuss in the next section we're quite comfortable with the 
+\begin_inset Formula $m=2$
+\end_inset
+
+ uncertainty behaviour (quickly separating dashed lines indicating large
+ uncertainty outside of the sample locations) but we're less happy about
+ the mean estimates shooting off to infinity.
+ This mean effect issue is down to the fact that when 
+\begin_inset Formula $m=1$
+\end_inset
+
+ in the unidimensional case the only globally acting polynomial is the constant
+ function 
+\begin_inset Formula $\phi_{1}(x_{1})=1$
+\end_inset
+
+ , whereas for the 
+\begin_inset Formula $m=2$
+\end_inset
+
+ case we have 
+\begin_inset Formula $\phi_{1}(x_{1})=1$
+\end_inset
+
+ and 
+\begin_inset Formula $\phi_{2}(x_{1})=x_{1}$
+\end_inset
+
+, the latter causing the 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+fig.width=7, fig.height=5
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+layout(matrix(c(1, 2), 1, 2), widths=c(1.5, 1))
+\end_layout
+
+\begin_layout Plain Layout
+
+k <- 20 ## basis dimension 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+b_tprs_m1 <- gam(y~s(x, bs="tp", m=1, k=k), method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+b_tprs_m2 <- gam(y~s(x, bs="tp", m=2, k=k), method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+par(cex.text=0.6, mar=c(5, 4, 1, 2) + 0.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x, y, xlim=c(-1, 2), pch=19, cex=0.4, asp=1/10)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_tprs_m1, pd, "grey60")
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x, f3(pd$x), col=
+\begin_inset Quotes erd
+\end_inset
+
+blue
+\begin_inset Quotes erd
+\end_inset
+
+, lty=2)
+\end_layout
+
+\begin_layout Plain Layout
+
+rug(x)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x, y, xlim=c(-1, 2), pch=19, cex=0.4, asp=1/10)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_tprs_m2, pd, "grey60")
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x, f3(pd$x), col=
+\begin_inset Quotes erd
+\end_inset
+
+blue
+\begin_inset Quotes erd
+\end_inset
+
+, lty=2)
+\end_layout
+
+\begin_layout Plain Layout
+
+rug(x)
+\end_layout
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Comparison between 
+\begin_inset Formula $m=1$
+\end_inset
+
+ (left) and 
+\begin_inset Formula $m=2$
+\end_inset
+
+ (right) for thin plate regression splines for a one dimensional smooth
+ of the test function 
+\begin_inset Quotes eld
+\end_inset
+
+f4
+\begin_inset Quotes erd
+\end_inset
+
+ given in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gu1991minimizing"
+
+\end_inset
+
+.
+ The plots are made to the same aspect ratio, note the difference in vertical
+ axis scale.
+ True function is shown in blue.
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:tprs-m1-m2"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Duchon splines 
+\end_layout
+
+\begin_layout Standard
+Duchon splines 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "duchon1977splines,miller2014finitearea,wood2017generalized2"
+literal "true"
+
+\end_inset
+
+ are a generalization of thin plate splines where penalization takes place
+ in the frequency domain.
+ The penalty is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\breve{J}_{m,d}=\int\ldots\int_{\mathbb{R}^{d}}\lvert\boldsymbol{\tau}\rvert^{2t}\sum_{\nu_{1}+\dots+\nu_{d}=m}\frac{m!}{\nu_{1}!\dots\nu_{d}!}\left(\mathfrak{F}\frac{\partial^{m}s}{\partial x_{1}^{\nu_{1}}\ldots\partial x_{d}^{\nu_{d}}}\left(\boldsymbol{\tau}\right)\right)^{2}\text{d}\boldsymbol{\tau},
+\]
+
+\end_inset
+
+where the notation is as for 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:tps-full"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ with 
+\begin_inset Formula $\mathfrak{F}$
+\end_inset
+
+ indicating Fourier transformation 
+\begin_inset CommandInset citation
+LatexCommand citep
+before "e.g.,"
+key "vretblad2003fourier"
+literal "false"
+
+\end_inset
+
+ so the integration now takes place in frequency space, rather than real
+ space.
+ 
+\begin_inset Formula $\boldsymbol{\tau}$
+\end_inset
+
+ is a vector of frequencies and 
+\begin_inset Formula $t$
+\end_inset
+
+ takes an integer value divided by two.
+ Increasing the value of 
+\begin_inset Formula $t$
+\end_inset
+
+ will penalize higher frequencies more and setting 
+\begin_inset Formula $t=0$
+\end_inset
+
+ will give 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:tps-full"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+, where all frequencies are penalized equally).
+ Taking this frequency interpretation and weighting, some of the low frequency
+ components of 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\eta_{m,d}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ do the job of some of the
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\begin_inset Formula $\phi_{j}$
+\end_inset
+
+, allowing us to reduce
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ 
+\begin_inset Formula $M$
+\end_inset
+
+.
+ We can now replace the condition 
+\begin_inset Formula $2m>d$
+\end_inset
+
+ with 
+\begin_inset Formula $m+t>d/2$
+\end_inset
+
+ in order to obtain smooth estimates of 
+\begin_inset Formula $s$
+\end_inset
+
+ (though we must ensure that 
+\begin_inset Formula $-d/2<t<d/2$
+\end_inset
+
+).
+ One can therefore think of 
+\begin_inset Formula $t$
+\end_inset
+
+ as a kind of 
+\begin_inset Quotes eld
+\end_inset
+
+fudge factor
+\begin_inset Quotes erd
+\end_inset
+
+ that allows the conditions on 
+\begin_inset Formula $m$
+\end_inset
+
+ and 
+\begin_inset Formula $d$
+\end_inset
+
+ to be relaxed.
+ Given some fixed combination of 
+\begin_inset Formula $m$
+\end_inset
+
+ and 
+\begin_inset Formula $d$
+\end_inset
+
+, an 
+\begin_inset Formula $t$
+\end_inset
+
+ can be found by simply calculating: 
+\begin_inset Formula $t>d/2-m$
+\end_inset
+
+.
+ In one dimension this means that the Duchon spline and thin plate spline
+ penalties coincide (since we can only choose 
+\begin_inset Formula $t=0$
+\end_inset
+
+).
+ In two dimensions we let 
+\begin_inset Formula $t=1/2$
+\end_inset
+
+ (since 
+\begin_inset Formula $t=0$
+\end_inset
+
+ gives us the thin plate penalty) with 
+\begin_inset Formula $m=1$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\breve{J}=\int\int_{\mathbb{R}^{2}}\lvert\boldsymbol{\tau}\rvert\left\{ \left(\mathfrak{F}\frac{\partial s}{\partial x_{1}}\left(\boldsymbol{\tau}\right)\right)^{2}+\left(\mathfrak{F}\frac{\partial s}{\partial x_{2}}\left(\boldsymbol{\tau}\right)\right)^{2}\right\} \text{d}\boldsymbol{\tau}.
+\]
+
+\end_inset
+
+note here that the cross-term in 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:tps-full"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ is omitted (partial derivative of 
+\begin_inset Formula $s$
+\end_inset
+
+ with respect to 
+\begin_inset Formula $x$
+\end_inset
+
+ and 
+\begin_inset Formula $y$
+\end_inset
+
+), this allows the smoothness in each direction to be traded off against
+ each other 
+\begin_inset CommandInset citation
+LatexCommand citep
+after "section 2"
+before "as with the soap film smoother;"
+key "wood2008soapfilm"
+literal "false"
+
+\end_inset
+
+.
+ We can use the same eigendecomposition approach as for TPRS to truncate
+ the basis size and avoid selecting knots.
+ When we set 
+\begin_inset Formula $t=1/2$
+\end_inset
+
+ with 
+\begin_inset Formula $m=1$
+\end_inset
+
+ in the bivariate case we see notable differences between the Duchon spline
+ and a bivariate TPRS.
+ These are analagous to those in the 1-D case for 
+\begin_inset Formula $m=1$
+\end_inset
+
+ and 
+\begin_inset Formula $m=2$
+\end_inset
+
+ with TPRS.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+fig.width=8, fig.height=5
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# how do extrapolations look in 2D?
+\end_layout
+
+\begin_layout Plain Layout
+
+library(mvtnorm)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+set.seed(123)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# simulate the data
+\end_layout
+
+\begin_layout Plain Layout
+
+gsim <- function(x1, x2, scale){
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  f <- dmvnorm(cbind(x1, x2), c(0, -1), matrix(c(0.5, 0.2, 0.2, 0.5), 2, 2))
+ +
+\end_layout
+
+\begin_layout Plain Layout
+
+        dmvnorm(cbind(x1, x2), c(0.5, 0.5), matrix(c(0.1, 0, 0, 0.1), 2, 2))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  y <- f+rnorm(length(x1), 0, scale)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  data <- data.frame(y=y, x1=x1, x2=x2, f=f)
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(data)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# generate some data
+\end_layout
+
+\begin_layout Plain Layout
+
+n <- 200
+\end_layout
+
+\begin_layout Plain Layout
+
+dat <- gsim(runif(n, -1, 1), runif(n, -1, 1), 2)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# SNR
+\end_layout
+
+\begin_layout Plain Layout
+
+cat("SNR=", with(dat, cor(y, f)), "
+\backslash
+n")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# predict and plot function
+\end_layout
+
+\begin_layout Plain Layout
+
+pred_and_plot <- function(model){
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  # prediction grid
+\end_layout
+
+\begin_layout Plain Layout
+
+  x1g <- seq(-10, 10, len=100)
+\end_layout
+
+\begin_layout Plain Layout
+
+  x2g <- seq(-10, 10, len=100)
+\end_layout
+
+\begin_layout Plain Layout
+
+  xgrid <- expand.grid(x1=x1g, x2=x2g)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  zlims <- range(dat$f) + c(-2, 2)
+\end_layout
+
+\begin_layout Plain Layout
+
+  preds <- predict(model, xgrid, se.fit=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+  pred.mat <- matrix(preds$fit, 100, 100) 
+\end_layout
+
+\begin_layout Plain Layout
+
+  pred.mat_p <- matrix(preds$fit, 100, 100)+2*matrix(preds$se.fit, 100, 100)
+\end_layout
+
+\begin_layout Plain Layout
+
+  pred.mat_m <- matrix(preds$fit, 100, 100)-2*matrix(preds$se.fit, 100, 100)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  #my_persp <- function(x=x1g, y=x2g, z, theta=30, phi=30, ...){
+\end_layout
+
+\begin_layout Plain Layout
+
+  #  persp(x, y, z, theta=theta, phi=phi, ...)
+\end_layout
+
+\begin_layout Plain Layout
+
+  #}
+\end_layout
+
+\begin_layout Plain Layout
+
+  #my_persp(z=pred.mat, x=x1g, y=x2g, zlim=zlims)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  #par(mfrow=c(1, 3))
+\end_layout
+
+\begin_layout Plain Layout
+
+  #image(z=pred.mat, x=x1g, y=x2g, asp=1, col=viridis(50))
+\end_layout
+
+\begin_layout Plain Layout
+
+  #points(model$data$x1, model$data$x2, pch=19, cex=0.5)
+\end_layout
+
+\begin_layout Plain Layout
+
+  #image(z=pred.mat_m, x=x1g, y=x2g, asp=1, col=viridis(50))
+\end_layout
+
+\begin_layout Plain Layout
+
+  #points(model$data$x1, model$data$x2, pch=19, cex=0.5)
+\end_layout
+
+\begin_layout Plain Layout
+
+  #image(z=pred.mat_p, x=x1g, y=x2g, asp=1, col=viridis(50))
+\end_layout
+
+\begin_layout Plain Layout
+
+  #points(model$data$x1, model$data$x2, pch=19, cex=0.5)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  par(mfrow=c(1, 2))
+\end_layout
+
+\begin_layout Plain Layout
+
+  image(z=pred.mat_m-pred.mat, x=x1g, y=x2g, asp=1, col=viridis(50), xlab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+  image(z=pred.mat_p-pred.mat, x=x1g, y=x2g, asp=1, col=viridis(50), xlab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# tprs fit
+\end_layout
+
+\begin_layout Plain Layout
+
+b_tprs <- gam(y~s(x1, x2), data=dat,  method="REML", control=list(keepData=TRUE)
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+pred_and_plot(b_tprs)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+### Duchon fit (s=0.5)
+\end_layout
+
+\begin_layout Plain Layout
+
+b_duchon <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5)), data=dat, method="REML",
+ control=list(keepData=TRUE))
+\end_layout
+
+\begin_layout Plain Layout
+
+pred_and_plot(b_duchon)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Plots of the upper and lower confidence intervals with the mean effect removed
+ for the thin plate regression splines and Duchon splines in a 2D example.
+ Data were generated in the square with vertices at 
+\begin_inset Formula $(\pm1,\pm1)$
+\end_inset
+
+ and extrapolated out to 
+\begin_inset Formula $(\pm10,\pm10)$
+\end_inset
+
+.
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:duchon-tprs-2d"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Desirable properties for extrapolation
+\end_layout
+
+\begin_layout Standard
+We would like to extrapolate but want to do something sensible when we do.
+ So what do we mean by "sensible"?
+\end_layout
+
+\begin_layout Enumerate
+the mean effect tends to something really simple like a constant,
+\end_layout
+
+\begin_layout Enumerate
+the variance reflecting our uncertainty that this is really right (i.e., increasin
+g with distance from the data.
+\end_layout
+
+\begin_layout Standard
+Thin plate splines with second derivative penalties (
+\begin_inset Formula $m=2$
+\end_inset
+
+) achieve 2.
+ (see Figures 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "fig:tprs-m1-m2"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "fig:duchon-tprs-2d"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) but not 1., their effects head off to 
+\begin_inset Formula $\pm\infty$
+\end_inset
+
+.
+ Using first order penalties (
+\begin_inset Formula $m=1$
+\end_inset
+
+) leads to 1.
+ but then violates 2.
+ as confidence intervals become flat.
+ The first order behaviour is down to the penalty being integrated over
+ 
+\begin_inset Formula $(-\infty,+\infty)$
+\end_inset
+
+ -- the smooth 
+\shape italic
+must
+\shape default
+ have zero gradient except over a finite interval around the data, or the
+ penalty will be infinite.
+\end_layout
+
+\begin_layout Standard
+The mean effect for the first order seems right, so how can we get the "right"
+ uncertainty behaviour? We should integrate a first derivative based smoothing
+ penalty over the range that we are interested in predicting over.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Itemize
+bayes chat?
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Potential solutions
+\end_layout
+
+\begin_layout Subsection
+B-splines as a solution
+\end_layout
+
+\begin_layout Standard
+B-splines 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "deboor1978apractical,lancaster1986curveand"
+literal "false"
+
+\end_inset
+
+ are a very flexible, locally-acting unidimensional basis where each function
+ only has support over the 
+\begin_inset Formula $\psi+3$
+\end_inset
+
+ adjacent knots if 
+\begin_inset Formula $\psi+1$
+\end_inset
+
+ is the order of the basis.
+ The basis has the following form:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+s(x)=\sum_{k=1}^{K}\beta_{k}B_{k}^{\psi}(x),
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $B_{k}^{\psi}$
+\end_inset
+
+ is defined recursively as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+B_{k}^{\psi}(x)=\frac{x-x_{k}^{*}}{x_{k+\psi+1}^{*}-x_{k}^{*}}B_{k}^{\psi-1}(x)+\frac{x_{k+\psi+2}^{*}-x}{x_{k+\psi+2}^{*}-x_{k+1}^{*}}B_{k+1}^{\psi-1}(x)\quad\text{for }k=1,\ldots,K,
+\]
+
+\end_inset
+
+and
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+B_{k}^{-1}(x)=\begin{cases}
+1\quad x_{k}^{*}\leq x<x_{k+1}^{*}\\
+0\quad\text{otherwise}.
+\end{cases}
+\]
+
+\end_inset
+
+Note that setting-up the basis involves the placement of 
+\begin_inset Formula $K+\psi+2$
+\end_inset
+
+ knots, 
+\begin_inset Formula $x_{k}^{*}$
+\end_inset
+
+, such that the first and last 
+\begin_inset Formula $\psi+1$
+\end_inset
+
+ knot locations are outside the range of the data.
+ This will become useful later.
+ Unlike TPRS or Duchon splines there are no constraints on the values of
+ 
+\begin_inset Formula $\psi$
+\end_inset
+
+ and 
+\begin_inset Formula $K$
+\end_inset
+
+, so one can think of B-splines as a 
+\begin_inset Quotes eld
+\end_inset
+
+mix-and-match
+\begin_inset Quotes erd
+\end_inset
+
+ basis.
+\end_layout
+
+\begin_layout Standard
+Two penalties have been suggested for B-splines.
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "eilers1996flexible,eilers2015twentyyears"
+literal "false"
+
+\end_inset
+
+ suggest a difference based penalty, this makes the penalty matrix very
+ quick to calculate.
+ Here instead we opt for the derivative-based penalty of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "wood2017psplines"
+
+\end_inset
+
+ which is defined as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathfrak{P}=\int_{x_{1}^{*}}^{x_{K-\psi+1}^{*}}\frac{\partial^{m}s(x)}{\partial x^{m}}dx
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $m\leq\psi$
+\end_inset
+
+ to ensure that derivatives are properly defined and 
+\begin_inset Formula $x_{1}^{*},\ldots,x_{K-\psi+1}^{*}$
+\end_inset
+
+ are the 
+\begin_inset Quotes eld
+\end_inset
+
+interior knots
+\begin_inset Quotes erd
+\end_inset
+
+.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+that is the knots within whose range the spline and its penalty are to be
+ evaluated
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "wood2017psplines"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+If we only integrate the penalty over the range of the data (B-spline, 
+\family typewriter
+bs="bs"
+\family default
+ default) then we are saying that we have no prior information outside the
+ range of the data, which is a bit silly.
+ So we assume that the same prior applies over the extrapolation range that
+ applies over the data range (otherwise what on earth are we doing?) but
+ not that the same prior applies over the entire range of values of the
+ covariate (including the completely impossible ones).
+\end_layout
+
+\begin_layout Standard
+Technically this is achieved by supplying knots to a B-spline (
+\family typewriter
+"bs"
+\family default
+) basis, in which the "inner" knots cover the covariate range over which
+ we want to predict/the penalty to apply.
+ We can set things up so that all but the other 2 inner knots actually just
+ cover the range of the data (see definition of 
+\family typewriter
+xk
+\family default
+ below).
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+fig.width=7, fig.height=5
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+m <- c(3,1) ## cubic b-splines, first order derivative penalty
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+xoo <- c(-1, 2) ## interval for all knots defining basis functions
+\end_layout
+
+\begin_layout Plain Layout
+
+xo <- c(-.5,1.5) ## interval over which to evaluate penalty
+\end_layout
+
+\begin_layout Plain Layout
+
+xi <- c(0,1) ## interval within which data and most of knots lie
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## get knot sequence....
+\end_layout
+
+\begin_layout Plain Layout
+
+xk <- c(seq(xoo[1],xo[1],length=m[1]+1),
+\end_layout
+
+\begin_layout Plain Layout
+
+        seq(xi[1],xi[2],length=k-m[1] - 1),
+\end_layout
+
+\begin_layout Plain Layout
+
+        seq(xo[2],xoo[2],length=m[1]+1))
+\end_layout
+
+\begin_layout Plain Layout
+
+b <- gam(y~s(x,bs="bs",m=m,k=k),knots=list(x=xk),method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## case 2.
+ outer range (-.2,1.2)...
+\end_layout
+
+\begin_layout Plain Layout
+
+xo <- c(-.2,1.2)
+\end_layout
+
+\begin_layout Plain Layout
+
+xk <- c(seq(xoo[1], xo[1], length=m[1]+1),
+\end_layout
+
+\begin_layout Plain Layout
+
+        seq(xi[1], xi[2], length=k-m[1] - 1),
+\end_layout
+
+\begin_layout Plain Layout
+
+        seq(xo[2], xoo[2], length=m[1]+1))
+\end_layout
+
+\begin_layout Plain Layout
+
+b_outer1 <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## case 3.
+ outer range (-.5,1.5), even spacing...
+\end_layout
+
+\begin_layout Plain Layout
+
+b_outer2 <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=c(-.5, 1.5)), method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+layout(matrix(c(1, 2), 1, 2), widths=c(1.5, 1))
+\end_layout
+
+\begin_layout Plain Layout
+
+# zoom out
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x, y, xlim=c(-1, 2), ylim=c(-30, 30), pch=19, cex=0.4)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b, pd, "black")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_outer1, pd, "blue")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_outer2, pd, "red")
+\end_layout
+
+\begin_layout Plain Layout
+
+# zoom in
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x, y, xlim=c(-0.1, 1.1), ylim=c(-10, 15), pch=19, cex=0.4)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b, pd, "black")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_outer1, pd, "blue")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_outer2, pd, "red") 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+B-spline fits to the 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gu1991minimizing"
+
+\end_inset
+
+ test function.
+ Blue is the model with outer range 
+\begin_inset Formula $(-0.2,1.2)$
+\end_inset
+
+, red is with outer range 
+\begin_inset Formula $(-0.5,1.5)$
+\end_inset
+
+, black is with outer range 
+\begin_inset Formula $(-1,2)$
+\end_inset
+
+.
+ The right plot is simply a zoom of the left to show minimal difference
+ in mean effects in the range of the data.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+vcstuff-bs, fig.width=10
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_pen <- function(b){
+\end_layout
+
+\begin_layout Plain Layout
+
+  pen <- b$smooth[[1]]$S[[1]]
+\end_layout
+
+\begin_layout Plain Layout
+
+  # stupid R's stupid matrix/image order thingo
+\end_layout
+
+\begin_layout Plain Layout
+
+  pen <- t(apply(pen, 2, rev))
+\end_layout
+
+\begin_layout Plain Layout
+
+  image.plot(pen, axes=FALSE, col=viridis(100), asp=1, horizontal=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+bs <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+ps <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+par(mfrow=c(1, 2))
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_pen(bs)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_pen(ps)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+plots of the structure of the B-spline penalty.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Adding additional zero-weight data
+\end_layout
+
+\begin_layout Standard
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+eval=FALSE
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## use Eric's trick -- extra zero-weight data
+\end_layout
+
+\begin_layout Plain Layout
+
+xtra <- expand.grid(x1=c(-10, 10), x2=c(-10, 10))
+\end_layout
+
+\begin_layout Plain Layout
+
+xtra$y <- 1e6
+\end_layout
+
+\begin_layout Plain Layout
+
+dat2  <-  rbind(dat[,c("x1", "x2", "y")],
+\end_layout
+
+\begin_layout Plain Layout
+
+                xtra)
+\end_layout
+
+\begin_layout Plain Layout
+
+b_weights <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5)), data=dat2, method="REML",
+\end_layout
+
+\begin_layout Plain Layout
+
+                 weights=c(rep(1, nrow(dat)), rep(0, nrow(xtra)) ))
+\end_layout
+
+\begin_layout Plain Layout
+
+pred_and_plot(b_weights)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Adding linear terms again
+\end_layout
+
+\begin_layout Standard
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+eval=FALSE
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## Simon's trick -- add in the x1 and x2 terms again
+\end_layout
+
+\begin_layout Plain Layout
+
+b_ex <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5), k=30) + x1 + x2, data=dat, method="R
+EML")
+\end_layout
+
+\begin_layout Plain Layout
+
+pred_and_plot(b_ex)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Discussion 
+\end_layout
+
+\begin_layout Itemize
+Say something about random effects and bootstraps?
+\end_layout
+
+\begin_layout Itemize
+smoothing parameter uncertainty?
+\end_layout
+
+\begin_layout Section*
+Acknowledgements
+\end_layout
+
+\begin_layout Standard
+The authors wish to thank Mark Bravington, Natalie Kelly and Eric Pedersen
+ for useful discussions.
+ This material is based upon work supported by the Naval Facilities Engineering
+ and Expeditionary Warfare Center under Contract No.
+ N39430-17-C-1982 (DLM) and this work began during DLM's visit with Mark
+ Bravington under contract for the International Whaling Commission.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+btprint "btPrintCited"
+bibfiles "extrap"
+options "abbrvnat"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
