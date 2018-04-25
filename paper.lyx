@@ -2209,10 +2209,14 @@ xk
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
@@ -2455,11 +2459,16 @@ key "gu1991minimizing"
 
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
@@ -2553,6 +2562,276 @@ plot_pen(ps)
 
 \begin_layout Plain Layout
 plots of the structure of the B-spline penalty.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## example adapted from ?smooth.construct.bs.smooth.spec
+\end_layout
+
+\begin_layout Plain Layout
+
+##  which I guess was adapted from code Simon and I worked on?
+\end_layout
+
+\begin_layout Plain Layout
+
+f3 <- function(x) 0.2 * x^11 * (10 * (1 - x))^6 + 10 * (10 * x)^3 *
+\end_layout
+
+\begin_layout Plain Layout
+
+                   (1 - x)^10 ## test function
+\end_layout
+
+\begin_layout Plain Layout
+
+n <- 100;x <- runif(n)
+\end_layout
+
+\begin_layout Plain Layout
+
+y <- f3(x) + rnorm(n)*2
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## now a model with first order penalty evaluated over (-.5,1.5) (black)
+\end_layout
+
+\begin_layout Plain Layout
+
+op <- options(warn=-1)
+\end_layout
+
+\begin_layout Plain Layout
+
+b <- gam(y~s(x, bs="bs", m=c(3, 1), k=20), knots=list(x=c(-.5, 0, 1, 1.5)),
+\end_layout
+
+\begin_layout Plain Layout
+
+                method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+options(op)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## and the equivalent with same penalty over data range only (blue)
+\end_layout
+
+\begin_layout Plain Layout
+
+b1 <- gam(y~s(x, bs="bs", m=c(3, 1), k=20), method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+pd <- data.frame(x=seq(-.7, 1.7, length=200))
+\end_layout
+
+\begin_layout Plain Layout
+
+fv <- predict(b, pd, se=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+ul <- fv$fit + fv$se.fit*2
+\end_layout
+
+\begin_layout Plain Layout
+
+ll <- fv$fit - fv$se.fit*2
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x,y,xlim=c(-.7,1.7),ylim=range(c(y,ll,ul)),#main=
+\end_layout
+
+\begin_layout Plain Layout
+
+#     "1st order penalties: blue bs over (0,1); black bs over (-.5,1.5)",
+\end_layout
+
+\begin_layout Plain Layout
+
+     pch=19, cex=0.4)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## penalty defined on (-.5,1.5) gives plausible predictions and intervals
+\end_layout
+
+\begin_layout Plain Layout
+
+## over this range...
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x,fv$fit)
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x,ul,lty=2)
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x,ll,lty=2)
+\end_layout
+
+\begin_layout Plain Layout
+
+rug(b$smooth[[1]]$knots)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+fv <- predict(b1,pd,se=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+ul <- fv$fit + fv$se.fit*2; ll <- fv$fit - fv$se.fit*2
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## penalty defined only over the data interval (0,1) gives wild and wide
+\end_layout
+
+\begin_layout Plain Layout
+
+## extrapolation since penalty has been `turned off' outside data range:
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x,fv$fit,col=4)
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x,ul,lty=2,col=4)
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x,ll,lty=2,col=4)
+\end_layout
+
+\begin_layout Plain Layout
+
+rug(b1$smooth[[1]]$knots, col=4)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+B-spline fits to the 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gu1991minimizing"
+
+\end_inset
+
+ test function 
+\begin_inset Quotes eld
+\end_inset
+
+f4
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Blue is the model with outer range 
+\begin_inset Formula $(0,1)$
+\end_inset
+
+, black is with outer range 
+\begin_inset Formula $(-0.5,1.5)$
+\end_inset
+
+.
+ Rug plots show the knot locations of the corresponding colour-coded models.
 \end_layout
 
 \end_inset
@@ -2706,8 +2985,8 @@ Acknowledgements
 \end_layout
 
 \begin_layout Standard
-The authors wish to thank Mark Bravington, Natalie Kelly and Eric Pedersen
- for useful discussions.
+The authors wish to thank Mark Bravington and Natalie Kelly for useful discussio
+ns.
  This material is based upon work supported by the Naval Facilities Engineering
  and Expeditionary Warfare Center under Contract No.
  N39430-17-C-1982 (DLM) and this work began during DLM's visit with Mark
