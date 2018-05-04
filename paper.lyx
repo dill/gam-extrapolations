@@ -185,8 +185,8 @@ extrapolation
 \begin_inset Quotes erd
 \end_inset
 
- means is a topic of some debate and regardless of definition investigators
- extrapolate to some extent regularly.
+ means is a topic of some debate, but regardless of definition extrapolation
+ to some extent happens regularly.
  If extrapolation does occur we'd prefer it to happen in the 
 \begin_inset Quotes eld
 \end_inset
@@ -195,12 +195,12 @@ safest
 \begin_inset Quotes erd
 \end_inset
 
- way possible, with investigators understanding the properties of the model
- at hand.
- Here we review the mean and uncertainty properties of current, commonly-used,
- smoothers when they are used to extrapolate beyond the range of the data
- and suggest some properties that are desirable (at least when modelling
- the distributions of biological populations from survey data).
+ way possible, with those doing the extrapolation able to understand the
+ properties of the model they use.
+ Here we review the mean and uncertainty properties of commonly-used smoothers
+ when they are used to extrapolate beyond the range of the data and suggest
+ some properties that are desirable (at least when modelling the distributions
+ of biological populations from survey data).
  We then go on to suggest some modifications of the current methods that
  provide our desirable properties.
 \end_layout
@@ -464,7 +464,7 @@ examples from Gu and Wahba f3 with 2*N(0,1) noise
 
 
 \begin_inset Flex Chunk
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -501,7 +501,59 @@ de")
 
 
 \begin_inset Flex Chunk
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
 status open
+
+\begin_layout Plain Layout
+
+cache=FALSE
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# always load mgcv
+\end_layout
+
+\begin_layout Plain Layout
+
+library(
+\begin_inset Quotes eld
+\end_inset
+
+mgcv
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+library(
+\begin_inset Quotes eld
+\end_inset
+
+viridis
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\end_inset
+
+
+\begin_inset Flex Chunk
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -520,11 +572,6 @@ status open
 \begin_layout Plain Layout
 
 # set up some simulation options
-\end_layout
-
-\begin_layout Plain Layout
-
-require(mgcv)
 \end_layout
 
 \begin_layout Plain Layout
@@ -553,6 +600,11 @@ f3 <- function(x2) 0.2 * x2^11 * (10 * (1 - x2))^6 + 10 * (10 * x2)^3 *
 
 \begin_layout Plain Layout
 
+set.seed(123)
+\end_layout
+
+\begin_layout Plain Layout
+
 n <- 100
 \end_layout
 
@@ -572,7 +624,21 @@ y <- f3(x) + rnorm(n)*2
 
 \begin_layout Plain Layout
 
-pd <- data.frame(x=seq(-1, 2, length=250)) 
+data_1d <- data.frame(x=x, y=y, f3=f3(x))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# plot grid
+\end_layout
+
+\begin_layout Plain Layout
+
+pd <- data.frame(x=seq(-1, 2, length=500)) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -611,22 +677,22 @@ plot_thing <- function(model, pd, col, uc=FALSE){
 
 \begin_layout Plain Layout
 
-  lines(pd$x,fv$fit,col=col)
+  lines(pd$x, fv$fit, col=col)
 \end_layout
 
 \begin_layout Plain Layout
 
-  lines(pd$x,ul,lty=2,col=col)
+  lines(pd$x, ul, lty=2, col=col)
 \end_layout
 
 \begin_layout Plain Layout
 
-  lines(pd$x,ll,lty=2,col=col)
+  lines(pd$x, ll, lty=2, col=col)
 \end_layout
 
 \begin_layout Plain Layout
 
-  suppressWarnings(rug(model$smooth[[1]]$knots, col=col, lwd=1))
+  #suppressWarnings(rug(model$smooth[[1]]$knots, col=col, lwd=1))
 \end_layout
 
 \begin_layout Plain Layout
@@ -1021,7 +1087,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -1049,7 +1115,7 @@ layout(matrix(c(1, 2), 1, 2), widths=c(1.5, 1))
 
 \begin_layout Plain Layout
 
-k <- 20 ## basis dimension 
+k <- 20 ## basis size
 \end_layout
 
 \begin_layout Plain Layout
@@ -1058,20 +1124,12 @@ k <- 20 ## basis dimension
 
 \begin_layout Plain Layout
 
+b_tprs_m1 <- gam(y~s(x, bs="tp", m=1, k=k), data=data_1d, method="ML")
 \end_layout
 
 \begin_layout Plain Layout
 
-b_tprs_m1 <- gam(y~s(x, bs="tp", m=1, k=k), method="ML")
-\end_layout
-
-\begin_layout Plain Layout
-
-b_tprs_m2 <- gam(y~s(x, bs="tp", m=2, k=k), method="ML")
-\end_layout
-
-\begin_layout Plain Layout
-
+b_tprs_m2 <- gam(y~s(x, bs="tp", m=2, k=k), data=data_1d, method="ML")
 \end_layout
 
 \begin_layout Plain Layout
@@ -1089,17 +1147,43 @@ par(cex.text=0.6, mar=c(5, 4, 1, 2) + 0.1)
 
 \begin_layout Plain Layout
 
-plot(x, y, xlim=c(-1, 2), pch=19, cex=0.4, asp=1/10)
+plot(x, y, xlim=c(-1, 2), pch=19, asp=1/10, cex=0.2, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+s(x)
+\begin_inset Quotes erd
+\end_inset
+
+, col=
+\begin_inset Quotes erd
+\end_inset
+
+grey
+\begin_inset Quotes erd
+\end_inset
+
+, axes=FALSE, ylim=c(-5, 15))
 \end_layout
 
 \begin_layout Plain Layout
 
-plot_thing(b_tprs_m1, pd, "grey60")
+axis(2)
 \end_layout
 
 \begin_layout Plain Layout
 
-lines(pd$x, f3(pd$x), col=
+axis(1, at=c(-1, 0, 1, 2))
+\end_layout
+
+\begin_layout Plain Layout
+
+box()
+\end_layout
+
+\begin_layout Plain Layout
+
+lines(pd$x[pd$x>0 & pd$x<1], f3(pd$x)[pd$x>0 & pd$x<1], col=
 \begin_inset Quotes erd
 \end_inset
 
@@ -1107,7 +1191,12 @@ blue
 \begin_inset Quotes erd
 \end_inset
 
-, lty=2)
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_tprs_m1, pd, "black")
 \end_layout
 
 \begin_layout Plain Layout
@@ -1121,17 +1210,28 @@ rug(x)
 
 \begin_layout Plain Layout
 
-plot(x, y, xlim=c(-1, 2), pch=19, cex=0.4, asp=1/10)
+plot(x, y, xlim=c(-1, 2), pch=19, asp=1/10, cex=0.2, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+s(x)
+\begin_inset Quotes erd
+\end_inset
+
+, col=
+\begin_inset Quotes erd
+\end_inset
+
+grey
+\begin_inset Quotes erd
+\end_inset
+
+, axes=FALSE, ylim=c(-25, 15))
 \end_layout
 
 \begin_layout Plain Layout
 
-plot_thing(b_tprs_m2, pd, "grey60")
-\end_layout
-
-\begin_layout Plain Layout
-
-lines(pd$x, f3(pd$x), col=
+lines(pd$x[pd$x>0 & pd$x<1], f3(pd$x)[pd$x>0 & pd$x<1], col=
 \begin_inset Quotes erd
 \end_inset
 
@@ -1139,7 +1239,27 @@ blue
 \begin_inset Quotes erd
 \end_inset
 
-, lty=2)
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_tprs_m2, pd, "black")
+\end_layout
+
+\begin_layout Plain Layout
+
+axis(2)
+\end_layout
+
+\begin_layout Plain Layout
+
+axis(1, at=c(-1, 0, 1, 2))
+\end_layout
+
+\begin_layout Plain Layout
+
+box()
 \end_layout
 
 \begin_layout Plain Layout
@@ -1490,11 +1610,11 @@ literal "false"
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -1775,7 +1895,12 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-  image(z=pred.mat_m-pred.mat, x=x1g, y=x2g, asp=1, col=viridis(50), xlab=
+  image(z=pred.mat_m-pred.mat, x=x1g, y=x2g, asp=1,
+\end_layout
+
+\begin_layout Plain Layout
+
+        col=viridis(50), xlab=
 \begin_inset Quotes erd
 \end_inset
 
@@ -1796,7 +1921,12 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-  image(z=pred.mat_p-pred.mat, x=x1g, y=x2g, asp=1, col=viridis(50), xlab=
+  image(z=pred.mat_p-pred.mat, x=x1g, y=x2g, asp=1,
+\end_layout
+
+\begin_layout Plain Layout
+
+        col=viridis(50), xlab=
 \begin_inset Quotes erd
 \end_inset
 
@@ -1885,9 +2015,11 @@ pred_and_plot(b_duchon)
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Plots of the upper and lower confidence intervals with the mean effect removed
- for the thin plate regression splines and Duchon splines in a 2D example.
- Data were generated in the square with vertices at 
+Plots of the upper (right column) and lower (left column) confidence intervals
+ with the mean effect removed for the thin plate regression splines (top
+ row) and Duchon splines (bottom row) in a 2D example.
+ Multivariate normal data were generated in the square with vertices at
+ 
 \begin_inset Formula $(\pm1,\pm1)$
 \end_inset
 
@@ -1917,6 +2049,13 @@ name "fig:duchon-tprs-2d"
 
 \begin_layout Section
 Desirable properties for extrapolation
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Desirable-properties-for"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1930,11 +2069,11 @@ the mean effect tends to something really simple like a constant,
 
 \begin_layout Enumerate
 the variance reflecting our uncertainty that this is really right (i.e., increasin
-g with distance from the data.
+g uncertainty with increasing distance from the data).
 \end_layout
 
 \begin_layout Standard
-Thin plate splines with second derivative penalties (
+In one dimension, thin plate splines with second derivative penalties (
 \begin_inset Formula $m=2$
 \end_inset
 
@@ -1968,7 +2107,7 @@ noprefix "false"
 \begin_inset Formula $m=1$
 \end_inset
 
-) leads to 1.
+) with TPRS leads to 1.
  but then violates 2.
  as confidence intervals become flat.
  The first order behaviour is down to the penalty being integrated over
@@ -1982,25 +2121,23 @@ must
 \shape default
  have zero gradient except over a finite interval around the data, or the
  penalty will be infinite.
-\end_layout
-
-\begin_layout Standard
-The mean effect for the first order seems right, so how can we get the "right"
- uncertainty behaviour? We should integrate a first derivative based smoothing
- penalty over the range that we are interested in predicting over.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Itemize
-bayes chat?
-\end_layout
-
+ The story is similar in two dimensions for Duchon splines for the same
+ reason: we fulfill 1.
+ only to violate 2..
+ TPRS in two dimensions (recalling we can only set 
+\begin_inset Formula $m=2$
 \end_inset
 
+) gives us 2.
+ but not 1..
+\end_layout
 
+\begin_layout Standard
+First derivative-based smoothing penalties give us the mean behaviour that
+ we want, but our issue is the integration range is the issue.
+ If we can define our integration range as the range that we are interested
+ in predicting over then we can obtain the uncertainty properties that we
+ desire.
 \end_layout
 
 \begin_layout Section
@@ -2008,7 +2145,7 @@ Potential solutions
 \end_layout
 
 \begin_layout Subsection
-B-splines as a solution
+B-splines
 \end_layout
 
 \begin_layout Standard
@@ -2020,29 +2157,37 @@ literal "false"
 
 \end_inset
 
- are a very flexible, locally-acting unidimensional basis where each function
+ are a very flexible, locally-acting unidimensional basis where each smooth
  only has support over the 
-\begin_inset Formula $\psi+3$
+\begin_inset Formula $K+\psi+1$
 \end_inset
 
- adjacent knots if 
-\begin_inset Formula $\psi+1$
+ knots (
+\begin_inset Formula $x_{1}^{*}<x_{2}^{*}<\ldots<x_{K+\psi+1}^{*}$
 \end_inset
 
- is the order of the basis.
+), if 
+\begin_inset Formula $\psi$
+\end_inset
+
+ is the order of the basis (
+\begin_inset Formula $\psi=3$
+\end_inset
+
+ gives a cubic basis).
  The basis has the following form:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-s(x)=\sum_{k=1}^{K}\beta_{k}B_{k}^{\psi}(x),
+s(x)=\sum_{k=1}^{K}\beta_{k}B_{k,\psi}(x),
 \]
 
 \end_inset
 
 where 
-\begin_inset Formula $B_{k}^{\psi}$
+\begin_inset Formula $B_{k,\psi}$
 \end_inset
 
  is defined recursively as:
@@ -2051,7 +2196,7 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \[
-B_{k}^{\psi}(x)=\frac{x-x_{k}^{*}}{x_{k+\psi+1}^{*}-x_{k}^{*}}B_{k}^{\psi-1}(x)+\frac{x_{k+\psi+2}^{*}-x}{x_{k+\psi+2}^{*}-x_{k+1}^{*}}B_{k+1}^{\psi-1}(x)\quad\text{for }k=1,\ldots,K,
+B_{k,\psi}(x)=\frac{x-x_{k}^{*}}{x_{k+m}^{*}-x_{k}^{*}}B_{k,\psi-1}(x)+\frac{x_{k+\psi+1}^{*}-x}{x_{k+\psi+1}^{*}-x_{k+1}^{*}}B_{k+1,\psi-1}(x)\quad\text{for }k=1,\ldots,K,\psi>0
 \]
 
 \end_inset
@@ -2062,7 +2207,7 @@ and
 \begin_layout Standard
 \begin_inset Formula 
 \[
-B_{k}^{-1}(x)=\begin{cases}
+B_{k,0}(x)=\begin{cases}
 1\quad x_{k}^{*}\leq x<x_{k+1}^{*}\\
 0\quad\text{otherwise}.
 \end{cases}
@@ -2070,38 +2215,7 @@ B_{k}^{-1}(x)=\begin{cases}
 
 \end_inset
 
-Note that setting-up the basis involves the placement of 
-\begin_inset Formula $K+\psi+2$
-\end_inset
 
- knots, 
-\begin_inset Formula $x_{k}^{*}$
-\end_inset
-
-, such that the first and last 
-\begin_inset Formula $\psi+1$
-\end_inset
-
- knot locations are outside the range of the data.
- This will become useful later.
- Unlike TPRS or Duchon splines there are no constraints on the values of
- 
-\begin_inset Formula $\psi$
-\end_inset
-
- and 
-\begin_inset Formula $K$
-\end_inset
-
-, so one can think of B-splines as a 
-\begin_inset Quotes eld
-\end_inset
-
-mix-and-match
-\begin_inset Quotes erd
-\end_inset
-
- basis.
 \end_layout
 
 \begin_layout Standard
@@ -2129,20 +2243,16 @@ key "wood2017psplines"
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\mathfrak{P}=\int_{x_{1}^{*}}^{x_{K-\psi+1}^{*}}\frac{\partial^{m}s(x)}{\partial x^{m}}dx
+\tilde{J}=\int_{x_{\psi+1}^{*}}^{x_{K+1}^{*}}\frac{\partial^{m}s(x)}{\partial x^{m}}dx
 \]
 
 \end_inset
 
-where 
-\begin_inset Formula $m\leq\psi$
+where the integration range is 
+\begin_inset Formula $x_{\psi+1}^{*},x_{K+1}^{*}$
 \end_inset
 
- to ensure that derivatives are properly defined and 
-\begin_inset Formula $x_{1}^{*},\ldots,x_{K-\psi+1}^{*}$
-\end_inset
-
- are the 
+: the 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2151,76 +2261,106 @@ interior knots
 \end_inset
 
 .
- 
-\begin_inset Note Note
-status open
+ We constrain 
+\begin_inset Formula $m\leq\psi$
+\end_inset
 
-\begin_layout Plain Layout
+ to ensure that derivatives are properly defined but have no other contraints
+ on the basis and penalty orders (unlike TPRS or Duchon).
+ If we let 
+\begin_inset Formula $x_{\psi+1}^{*},x_{K+1}^{*}$
+\end_inset
+
+ be the maximum and minimum values of 
+\begin_inset Formula $x$
+\end_inset
+
+ in the data then we are saying that we have no prior on the behaviour of
+ the smooth outside the range of the data.
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:B-spline-fit-default"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows a fit to the 
+\begin_inset CommandInset citation
+LatexCommand citeauthor
+key "gu1991minimizing"
+literal "false"
+
+\end_inset
+
+ test function using this knots selection, the problems are as with the
+ TPRS 
+\begin_inset Formula $m=2$
+\end_inset
+
+ case: though the intervals are wide, the mean effect tends toward infinity.
+ 
+\end_layout
+
+\begin_layout Standard
+Our prior from section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Desirable-properties-for"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ is that we are less certain and that the smoother will return to some 
 \begin_inset Quotes eld
 \end_inset
 
-that is the knots within whose range the spline and its penalty are to be
- evaluated
+baseline
 \begin_inset Quotes erd
 \end_inset
 
- 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "wood2017psplines"
-
+ level the further we are from the data, while uncertainty increases.
+ By setting 
+\begin_inset Formula $(x_{\psi+1}^{*},x_{K+1}^{*})$
 \end_inset
 
-
-\end_layout
-
+ to be the range that we will want to predict over we can create a prior
+ on our smoother that has the properties we seek.
+ The behaviour of the smoother within 
+\begin_inset Formula $(x_{\psi+1}^{*},x_{K+1}^{*})$
 \end_inset
 
- 
+ is dictated by the knot positions within the data.
+ There are two obvious options here: 1) space knots evenly within 
+\begin_inset Formula $(x_{\psi+1}^{*},x_{K+1}^{*})$
+\end_inset
+
+ or 2) put more knots where the data are and fewer between the data 
+\begin_inset Formula $(\text{min}(x),x_{\psi+1}^{*})$
+\end_inset
+
+ and 
+\begin_inset Formula $(\text{max}(x),x_{K+1}^{*})$
+\end_inset
+
+.
+ Deciding on the predictions we'd like to make during model formulation
+ also makes clear what we want to use the model for.
 \end_layout
 
 \begin_layout Standard
-If we only integrate the penalty over the range of the data (B-spline, 
-\family typewriter
-bs="bs"
-\family default
- default) then we are saying that we have no prior information outside the
- range of the data, which is a bit silly.
- So we assume that the same prior applies over the extrapolation range that
- applies over the data range (otherwise what on earth are we doing?) but
- not that the same prior applies over the entire range of values of the
- covariate (including the completely impossible ones).
-\end_layout
-
-\begin_layout Standard
-Technically this is achieved by supplying knots to a B-spline (
-\family typewriter
-"bs"
-\family default
-) basis, in which the "inner" knots cover the covariate range over which
- we want to predict/the penalty to apply.
- We can set things up so that all but the other 2 inner knots actually just
- cover the range of the data (see definition of 
-\family typewriter
-xk
-\family default
- below).
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2229,7 +2369,7 @@ status open
 
 \begin_layout Plain Layout
 
-fig.width=7, fig.height=5
+fig.width=7, fig.height=6
 \end_layout
 
 \end_inset
@@ -2239,7 +2379,22 @@ fig.width=7, fig.height=5
 
 \begin_layout Plain Layout
 
-m <- c(3,1) ## cubic b-splines, first order derivative penalty
+# cubic b-splines, first order derivative penalty
+\end_layout
+
+\begin_layout Plain Layout
+
+m <- c(3,1)
+\end_layout
+
+\begin_layout Plain Layout
+
+# basis size
+\end_layout
+
+\begin_layout Plain Layout
+
+k <- 20
 \end_layout
 
 \begin_layout Plain Layout
@@ -2248,50 +2403,33 @@ m <- c(3,1) ## cubic b-splines, first order derivative penalty
 
 \begin_layout Plain Layout
 
-xoo <- c(-1, 2) ## interval for all knots defining basis functions
+# plot setup
 \end_layout
 
 \begin_layout Plain Layout
 
-xo <- c(-.5,1.5) ## interval over which to evaluate penalty
+par(mar=c(5, 4, 2, .5) + 0.1)
 \end_layout
 
 \begin_layout Plain Layout
 
-xi <- c(0,1) ## interval within which data and most of knots lie
-\end_layout
+plot(x, y, xlim=c(-1, 2), ylim=c(-20, 20), pch=19, cex=0.3, ylab=
+\begin_inset Quotes erd
+\end_inset
 
-\begin_layout Plain Layout
+s(x)
+\begin_inset Quotes erd
+\end_inset
 
-\end_layout
+, col=
+\begin_inset Quotes erd
+\end_inset
 
-\begin_layout Plain Layout
+grey
+\begin_inset Quotes erd
+\end_inset
 
-\end_layout
-
-\begin_layout Plain Layout
-
-## get knot sequence....
-\end_layout
-
-\begin_layout Plain Layout
-
-xk <- c(seq(xoo[1],xo[1],length=m[1]+1),
-\end_layout
-
-\begin_layout Plain Layout
-
-        seq(xi[1],xi[2],length=k-m[1] - 1),
-\end_layout
-
-\begin_layout Plain Layout
-
-        seq(xo[2],xoo[2],length=m[1]+1))
-\end_layout
-
-\begin_layout Plain Layout
-
-b <- gam(y~s(x,bs="bs",m=m,k=k),knots=list(x=xk),method="ML")
+)
 \end_layout
 
 \begin_layout Plain Layout
@@ -2300,17 +2438,304 @@ b <- gam(y~s(x,bs="bs",m=m,k=k),knots=list(x=xk),method="ML")
 
 \begin_layout Plain Layout
 
+b_default <- gam(y~s(x, bs="bs", m=m, k=k), data=data_1d, method="ML")
 \end_layout
 
 \begin_layout Plain Layout
 
-## case 2.
- outer range (-.2,1.2)...
 \end_layout
 
 \begin_layout Plain Layout
 
-xo <- c(-.2,1.2)
+plot_thing(b_default, pd, "blue")
+\end_layout
+
+\begin_layout Plain Layout
+
+rug(b_default$smooth[[1]]$knots, col=
+\begin_inset Quotes erd
+\end_inset
+
+blue
+\begin_inset Quotes erd
+\end_inset
+
+, lwd=1.5, ticksize = 0.015)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+B-spline fit to the 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gu1991minimizing"
+
+\end_inset
+
+ test function.
+ Solid line indicates mean effects of the smooths, dashed lines give the
+ upper/lower confidence limits.
+ Rug plots show the knot locations, with 3 knots outside the range of the
+ data.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:B-spline-fit-default"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:B-spline-fits-to"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows B-spline fits to the 
+\begin_inset CommandInset citation
+LatexCommand citeauthor
+key "gu1991minimizing"
+literal "false"
+
+\end_inset
+
+ test function.
+ Data was generated within 
+\begin_inset Formula $(0,1)$
+\end_inset
+
+ with Gaussian errors as above.
+ The red fit in the figure uses scheme 1, evenly distributing knots between
+ 
+\begin_inset Formula $-0.8$
+\end_inset
+
+ and 
+\begin_inset Formula $1.8$
+\end_inset
+
+.
+ The blue fit in the figure use scheme 2, where there are more knots in
+ the interval 
+\begin_inset Formula $(0,1)$
+\end_inset
+
+.
+ Increasing the number of knots in the integration range improves the behaviour
+ of the mean effect (bold lines), but there is not a sacrifice in terms
+ of the confidence band, which remains quite wide, reflecting our uncertainty
+ outside the range of the data.
+ Note that the blue knots go out to 
+\begin_inset Formula $(-1,2)$
+\end_inset
+
+ but it's the increased number of knots that have the effect we seek, not
+ the range of the knots.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex Chunk
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+fig.width=7, fig.height=6
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# cubic b-splines, first order derivative penalty
+\end_layout
+
+\begin_layout Plain Layout
+
+m <- c(3,1)
+\end_layout
+
+\begin_layout Plain Layout
+
+# basis size
+\end_layout
+
+\begin_layout Plain Layout
+
+k <- 20
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# interval for all knots defining basis functions
+\end_layout
+
+\begin_layout Plain Layout
+
+xoo <- c(-1, 2)
+\end_layout
+
+\begin_layout Plain Layout
+
+# xo is interval over which to evaluate penalty
+\end_layout
+
+\begin_layout Plain Layout
+
+# interval within which data and most of knots lie
+\end_layout
+
+\begin_layout Plain Layout
+
+xi <- c(0, 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# plot setup
+\end_layout
+
+\begin_layout Plain Layout
+
+par(mar=c(5, 4, 2, .5) + 0.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x, y, xlim=c(-1, 2), ylim=c(-20, 20), pch=19, cex=0.3, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+s(x)
+\begin_inset Quotes erd
+\end_inset
+
+, col=
+\begin_inset Quotes erd
+\end_inset
+
+grey
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# integration range (-.5, 1.5)...
+\end_layout
+
+\begin_layout Plain Layout
+
+#xo <- c(-.5, 1.5)
+\end_layout
+
+\begin_layout Plain Layout
+
+#xk <- c(seq(xoo[1], xo[1], length=m[1]+1),
+\end_layout
+
+\begin_layout Plain Layout
+
+#        seq(xi[1], xi[2], length=k-m[1]-1),
+\end_layout
+
+\begin_layout Plain Layout
+
+#        seq(xo[2], xoo[2], length=m[1]+1))
+\end_layout
+
+\begin_layout Plain Layout
+
+#b <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), data=data_1d, method="ML"
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+# plot
+\end_layout
+
+\begin_layout Plain Layout
+
+#plot_thing(b, pd, "black")
+\end_layout
+
+\begin_layout Plain Layout
+
+#rug(xk, col=
+\begin_inset Quotes erd
+\end_inset
+
+black
+\begin_inset Quotes erd
+\end_inset
+
+, lwd=1.5)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# integration range (-.2, 1.2)...
+\end_layout
+
+\begin_layout Plain Layout
+
+xo <- c(-.2, 1.2)
 \end_layout
 
 \begin_layout Plain Layout
@@ -2320,7 +2745,7 @@ xk <- c(seq(xoo[1], xo[1], length=m[1]+1),
 
 \begin_layout Plain Layout
 
-        seq(xi[1], xi[2], length=k-m[1] - 1),
+        seq(xi[1], xi[2], length=k-m[1]-1),
 \end_layout
 
 \begin_layout Plain Layout
@@ -2330,55 +2755,56 @@ xk <- c(seq(xoo[1], xo[1], length=m[1]+1),
 
 \begin_layout Plain Layout
 
-b_outer1 <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), method="ML")
+b_outer1 <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), data=data_1d,
+ method="ML")
 \end_layout
 
 \begin_layout Plain Layout
 
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-## case 3.
- outer range (-.5,1.5), even spacing...
-\end_layout
-
-\begin_layout Plain Layout
-
-b_outer2 <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=c(-.5, 1.5)), method="ML")
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-layout(matrix(c(1, 2), 1, 2), widths=c(1.5, 1))
-\end_layout
-
-\begin_layout Plain Layout
-
-# zoom out
-\end_layout
-
-\begin_layout Plain Layout
-
-plot(x, y, xlim=c(-1, 2), ylim=c(-30, 30), pch=19, cex=0.4)
-\end_layout
-
-\begin_layout Plain Layout
-
-plot_thing(b, pd, "black")
+# plot
 \end_layout
 
 \begin_layout Plain Layout
 
 plot_thing(b_outer1, pd, "blue")
+\end_layout
+
+\begin_layout Plain Layout
+
+rug(xk, col=
+\begin_inset Quotes erd
+\end_inset
+
+blue
+\begin_inset Quotes erd
+\end_inset
+
+, lwd=1.5, ticksize = 0.015, line=-0.4)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# integration range (-.5, 1.5), even spacing...
+\end_layout
+
+\begin_layout Plain Layout
+
+xk <- seq(-0.8, 1.8, length=k+m[1]+1)
+\end_layout
+
+\begin_layout Plain Layout
+
+b_outer2 <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), data=data_1d,
+ method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+# plot
 \end_layout
 
 \begin_layout Plain Layout
@@ -2388,31 +2814,15 @@ plot_thing(b_outer2, pd, "red")
 
 \begin_layout Plain Layout
 
-# zoom in
-\end_layout
+rug(xk, col=
+\begin_inset Quotes erd
+\end_inset
 
-\begin_layout Plain Layout
+red
+\begin_inset Quotes erd
+\end_inset
 
-plot(x, y, xlim=c(-0.1, 1.1), ylim=c(-10, 15), pch=19, cex=0.4)
-\end_layout
-
-\begin_layout Plain Layout
-
-plot_thing(b, pd, "black")
-\end_layout
-
-\begin_layout Plain Layout
-
-plot_thing(b_outer1, pd, "blue")
-\end_layout
-
-\begin_layout Plain Layout
-
-plot_thing(b_outer2, pd, "red") 
-\end_layout
-
-\begin_layout Plain Layout
-
+, lwd=1.5, ticksize = 0.015, line=0)
 \end_layout
 
 \end_inset
@@ -2432,22 +2842,23 @@ key "gu1991minimizing"
 \end_inset
 
  test function.
- Blue is the model with outer range 
-\begin_inset Formula $(-0.2,1.2)$
-\end_inset
-
-, red is with outer range 
-\begin_inset Formula $(-0.5,1.5)$
-\end_inset
-
-, black is with outer range 
-\begin_inset Formula $(-1,2)$
+ Solid lines indicate mean effects of the smooths, dashed lines give the
+ upper/lower confidence limits.
+ The red fit uses evenly distributed knots between 
+\begin_inset Formula $(-0.8,1.8)$
 \end_inset
 
 .
- The right plot is simply a zoom of the left to show minimal difference
- in mean effects in the range of the data.
-\end_layout
+ The blue fit puts more knots in the interval 
+\begin_inset Formula $(0,1)$
+\end_inset
+
+.
+ Rug plots show the knot locations.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:B-spline-fits-to"
 
 \end_inset
 
@@ -2465,10 +2876,14 @@ key "gu1991minimizing"
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
@@ -2487,6 +2902,11 @@ vcstuff-bs, fig.width=10
 \end_inset
 
 
+\end_layout
+
+\begin_layout Plain Layout
+
+library(fields)
 \end_layout
 
 \begin_layout Plain Layout
@@ -2511,6 +2931,10 @@ plot_pen <- function(b){
 
 \begin_layout Plain Layout
 
+\end_layout
+
+\begin_layout Plain Layout
+
   image.plot(pen, axes=FALSE, col=viridis(100), asp=1, horizontal=TRUE)
 \end_layout
 
@@ -2521,27 +2945,73 @@ plot_pen <- function(b){
 
 \begin_layout Plain Layout
 
-bs <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), method="ML")
 \end_layout
 
 \begin_layout Plain Layout
 
-ps <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), method="ML")
+plot_var <- function(b){
 \end_layout
 
 \begin_layout Plain Layout
 
-par(mfrow=c(1, 2))
+  pen <- b$smooth[[1]]$S[[1]]
 \end_layout
 
 \begin_layout Plain Layout
 
-plot_pen(bs)
+  # stupid R's stupid matrix/image order thingo
 \end_layout
 
 \begin_layout Plain Layout
 
-plot_pen(ps)
+  pen <- t(apply(pen, 2, rev))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  var <- eigen(pen)
+\end_layout
+
+\begin_layout Plain Layout
+
+  var <- var$vector %*% diag(1/var$value) %*% t(var$vector)
+\end_layout
+
+\begin_layout Plain Layout
+
+  image.plot(var, axes=FALSE, col=viridis(100), asp=1, horizontal=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+bs1 <- gam(y~s(x, bs="bs", m=m, k=k), knots=list(x=xk), data=data_1d, method="ML
+")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_pen(bs1)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \begin_layout Plain Layout
@@ -2572,6 +3042,27 @@ plots of the structure of the B-spline penalty.
 \end_inset
 
 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Add something here about tensor products?!
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
@@ -2588,6 +3079,7 @@ status open
 
 \begin_layout Plain Layout
 
+fig.width=8, fig.height=5
 \end_layout
 
 \end_inset
@@ -2597,32 +3089,17 @@ status open
 
 \begin_layout Plain Layout
 
-## example adapted from ?smooth.construct.bs.smooth.spec
+# generate some data
 \end_layout
 
 \begin_layout Plain Layout
 
-##  which I guess was adapted from code Simon and I worked on?
+n <- 200
 \end_layout
 
 \begin_layout Plain Layout
 
-f3 <- function(x) 0.2 * x^11 * (10 * (1 - x))^6 + 10 * (10 * x)^3 *
-\end_layout
-
-\begin_layout Plain Layout
-
-                   (1 - x)^10 ## test function
-\end_layout
-
-\begin_layout Plain Layout
-
-n <- 100;x <- runif(n)
-\end_layout
-
-\begin_layout Plain Layout
-
-y <- f3(x) + rnorm(n)*2
+dat <- gsim(runif(n, -1, 1), runif(n, -1, 1), 2)
 \end_layout
 
 \begin_layout Plain Layout
@@ -2635,27 +3112,7 @@ y <- f3(x) + rnorm(n)*2
 
 \begin_layout Plain Layout
 
-## now a model with first order penalty evaluated over (-.5,1.5) (black)
-\end_layout
-
-\begin_layout Plain Layout
-
-op <- options(warn=-1)
-\end_layout
-
-\begin_layout Plain Layout
-
-b <- gam(y~s(x, bs="bs", m=c(3, 1), k=20), knots=list(x=c(-.5, 0, 1, 1.5)),
-\end_layout
-
-\begin_layout Plain Layout
-
-                method="ML")
-\end_layout
-
-\begin_layout Plain Layout
-
-options(op)
+par(mfrow=c(1,2))
 \end_layout
 
 \begin_layout Plain Layout
@@ -2664,32 +3121,26 @@ options(op)
 
 \begin_layout Plain Layout
 
-## and the equivalent with same penalty over data range only (blue)
+b_2d <- gam(y~te(x1, x2, bs=
+\begin_inset Quotes erd
+\end_inset
+
+bs
+\begin_inset Quotes erd
+\end_inset
+
+, k=c(10, 10)), data=dat,  method="ML",
 \end_layout
 
 \begin_layout Plain Layout
 
-b1 <- gam(y~s(x, bs="bs", m=c(3, 1), k=20), method="ML")
+            control=list(keepData=TRUE), knots=list(x=c(-10, 10), y=c(-10,
+ 10)))
 \end_layout
 
 \begin_layout Plain Layout
 
-pd <- data.frame(x=seq(-.7, 1.7, length=200))
-\end_layout
-
-\begin_layout Plain Layout
-
-fv <- predict(b, pd, se=TRUE)
-\end_layout
-
-\begin_layout Plain Layout
-
-ul <- fv$fit + fv$se.fit*2
-\end_layout
-
-\begin_layout Plain Layout
-
-ll <- fv$fit - fv$se.fit*2
+pred_and_plot(b_2d)
 \end_layout
 
 \begin_layout Plain Layout
@@ -2702,99 +3153,6 @@ ll <- fv$fit - fv$se.fit*2
 
 \begin_layout Plain Layout
 
-plot(x,y,xlim=c(-.7,1.7),ylim=range(c(y,ll,ul)),#main=
-\end_layout
-
-\begin_layout Plain Layout
-
-#     "1st order penalties: blue bs over (0,1); black bs over (-.5,1.5)",
-\end_layout
-
-\begin_layout Plain Layout
-
-     pch=19, cex=0.4)
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-## penalty defined on (-.5,1.5) gives plausible predictions and intervals
-\end_layout
-
-\begin_layout Plain Layout
-
-## over this range...
-\end_layout
-
-\begin_layout Plain Layout
-
-lines(pd$x,fv$fit)
-\end_layout
-
-\begin_layout Plain Layout
-
-lines(pd$x,ul,lty=2)
-\end_layout
-
-\begin_layout Plain Layout
-
-lines(pd$x,ll,lty=2)
-\end_layout
-
-\begin_layout Plain Layout
-
-rug(b$smooth[[1]]$knots)
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-fv <- predict(b1,pd,se=TRUE)
-\end_layout
-
-\begin_layout Plain Layout
-
-ul <- fv$fit + fv$se.fit*2; ll <- fv$fit - fv$se.fit*2
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-## penalty defined only over the data interval (0,1) gives wild and wide
-\end_layout
-
-\begin_layout Plain Layout
-
-## extrapolation since penalty has been `turned off' outside data range:
-\end_layout
-
-\begin_layout Plain Layout
-
-lines(pd$x,fv$fit,col=4)
-\end_layout
-
-\begin_layout Plain Layout
-
-lines(pd$x,ul,lty=2,col=4)
-\end_layout
-
-\begin_layout Plain Layout
-
-lines(pd$x,ll,lty=2,col=4)
-\end_layout
-
-\begin_layout Plain Layout
-
-rug(b1$smooth[[1]]$knots, col=4)
 \end_layout
 
 \end_inset
@@ -2806,32 +3164,18 @@ rug(b1$smooth[[1]]$knots, col=4)
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-B-spline fits to the 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "gu1991minimizing"
-
+Plots of the upper (right column) and lower (left column) confidence intervals
+ in a 2D example.
+ Multivariate normal data were generated in the square with vertices at
+ 
+\begin_inset Formula $(\pm1,\pm1)$
 \end_inset
 
- test function 
-\begin_inset Quotes eld
-\end_inset
-
-f4
-\begin_inset Quotes erd
+ and extrapolated out to 
+\begin_inset Formula $(\pm10,\pm10)$
 \end_inset
 
 .
- Blue is the model with outer range 
-\begin_inset Formula $(0,1)$
-\end_inset
-
-, black is with outer range 
-\begin_inset Formula $(-0.5,1.5)$
-\end_inset
-
-.
- Rug plots show the knot locations of the corresponding colour-coded models.
 \end_layout
 
 \end_inset
@@ -2849,6 +3193,12 @@ Adding additional zero-weight data
 \end_layout
 
 \begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
 \begin_inset Flex Chunk
 status open
 
@@ -2859,7 +3209,7 @@ status open
 
 \begin_layout Plain Layout
 
-eval=FALSE
+eval=TRUE
 \end_layout
 
 \end_inset
@@ -2878,40 +3228,207 @@ eval=FALSE
 
 \begin_layout Plain Layout
 
-xtra <- expand.grid(x1=c(-10, 10), x2=c(-10, 10))
+#xtra <- expand.grid(x1=c(-10, 10), x2=c(-10, 10))
 \end_layout
 
 \begin_layout Plain Layout
 
-xtra$y <- 1e6
+#xtra$y <- 1e6
 \end_layout
 
 \begin_layout Plain Layout
 
-dat2  <-  rbind(dat[,c("x1", "x2", "y")],
+#dat2  <-  rbind(dat[,c("x1", "x2", "y")],
 \end_layout
 
 \begin_layout Plain Layout
 
-                xtra)
+#                xtra)
 \end_layout
 
 \begin_layout Plain Layout
 
-b_weights <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5)), data=dat2, method="REML",
+#b_weights <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5)), data=dat2, method="REML",
 \end_layout
 
 \begin_layout Plain Layout
 
-                 weights=c(rep(1, nrow(dat)), rep(0, nrow(xtra)) ))
+#                 weights=c(rep(1, nrow(dat)), rep(0, nrow(xtra)) ))
 \end_layout
 
 \begin_layout Plain Layout
 
-pred_and_plot(b_weights)
+#pred_and_plot(b_weights)
 \end_layout
 
 \begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+n_psuedo <- 10
+\end_layout
+
+\begin_layout Plain Layout
+
+min_exp <- -1
+\end_layout
+
+\begin_layout Plain Layout
+
+max_exp <- 2 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+dat_psuedo <- data.frame(x=c(seq(min_exp, 0, length=n_psuedo),
+\end_layout
+
+\begin_layout Plain Layout
+
+                             data_1d$x,
+\end_layout
+
+\begin_layout Plain Layout
+
+                             seq(1, max_exp, length=n_psuedo)),
+\end_layout
+
+\begin_layout Plain Layout
+
+                         y=c(rep(0, times=n_psuedo),
+\end_layout
+
+\begin_layout Plain Layout
+
+                             data_1d$y,
+\end_layout
+
+\begin_layout Plain Layout
+
+                             rep(0, times=n_psuedo)),
+\end_layout
+
+\begin_layout Plain Layout
+
+                         w=c(rep(0, n_psuedo),
+\end_layout
+
+\begin_layout Plain Layout
+
+                             rep(1, nrow(data_1d)),
+\end_layout
+
+\begin_layout Plain Layout
+
+                             rep(0, n_psuedo)))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+par(mar=c(5, 4, 2, .5) + 0.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x, y, xlim=c(-1, 2), ylim=c(-20, 20), pch=19, cex=0.3, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+s(x)
+\begin_inset Quotes erd
+\end_inset
+
+, col=
+\begin_inset Quotes erd
+\end_inset
+
+grey
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+b_weight_1 <- gam(y~s(x, m=1, k=k*2), weights=w, data=dat_psuedo, method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_weight_1, pd, "red")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+b_weight_2 <- gam(y~s(x, m=2, k=k*2), weights=w, data=dat_psuedo, method="ML")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_weight_2, pd, "blue")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+zero-weight data
+\end_layout
+
+\end_inset
+
 
 \end_layout
 
@@ -2925,6 +3442,12 @@ Adding linear terms again
 \end_layout
 
 \begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
 \begin_inset Flex Chunk
 status open
 
@@ -2935,15 +3458,11 @@ status open
 
 \begin_layout Plain Layout
 
-eval=FALSE
+eval=TRUE
 \end_layout
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Plain Layout
 
 \end_layout
 
@@ -2954,13 +3473,67 @@ eval=FALSE
 
 \begin_layout Plain Layout
 
-b_ex <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5), k=30) + x1 + x2, data=dat, method="R
-EML")
+b_linear_1 <- gam(y~s(x, m=1, k=k)+x, method="REML") 
 \end_layout
 
 \begin_layout Plain Layout
 
-pred_and_plot(b_ex)
+\end_layout
+
+\begin_layout Plain Layout
+
+par(mar=c(5, 4, 2, .5) + 0.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(x, y, xlim=c(-1, 2), ylim=c(-20, 20), pch=19, cex=0.3, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+s(x)
+\begin_inset Quotes erd
+\end_inset
+
+, col=
+\begin_inset Quotes erd
+\end_inset
+
+grey
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot_thing(b_linear_1, pd, "red")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+adding linear terms again
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -2978,6 +3551,10 @@ Say something about random effects and bootstraps?
 
 \begin_layout Itemize
 smoothing parameter uncertainty?
+\end_layout
+
+\begin_layout Itemize
+interpretation as prior
 \end_layout
 
 \begin_layout Section*
