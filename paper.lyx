@@ -176,8 +176,9 @@ Andrews, Fife, Scotland
 \end_layout
 
 \begin_layout Abstract
-It is generally considered a bad idea to extrapolate from a model, quite
- what 
+It is generally considered a bad idea to extrapolate outside the range of
+ the data using a model.
+ Quite what 
 \begin_inset Quotes eld
 \end_inset
 
@@ -185,9 +186,9 @@ extrapolation
 \begin_inset Quotes erd
 \end_inset
 
- means is a topic of some debate, but regardless of definition extrapolation
- to some extent happens regularly.
- If extrapolation does occur we'd prefer it to happen in the 
+ means is a topic of some debate, but regardless of definition, extrapolation
+ to some extent takes place regularly.
+ If extrapolation does take place we would prefer it to happen in the 
 \begin_inset Quotes eld
 \end_inset
 
@@ -196,7 +197,7 @@ safest
 \end_inset
 
  way possible, with those doing the extrapolation able to understand the
- properties of the model they use.
+ properties of their model.
  Here we review the mean and uncertainty properties of commonly-used smoothers
  when they are used to extrapolate beyond the range of the data and suggest
  some properties that are desirable (at least when modelling the distributions
@@ -214,15 +215,37 @@ Out-of-sample inference from models is fraught with problems.
  Just because a model performs well within the bounds of the current data
  is no guarantee that it will behave well with new data, where covariate
  values are different.
- The term 
-\begin_inset Quotes eld
+ Extrapolation is usually understood to be making predictions outside the
+ 
+\shape italic
+range
+\shape default
+ of the data in covariate space.
+ In this case we could think of some convex hull around the data, outside
+ of which extrapolation takes place.
+ An important case that this definition ignores is where gaps occur within
+ the range of data where no observations were made 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "conn2015onextrapolating"
+literal "true"
+
 \end_inset
 
-extrapolation
-\begin_inset Quotes erd
-\end_inset
-
- encompases predictions both near and far from the data that was collected.
+, we will refer to this here as 
+\shape italic
+interpolation
+\shape default
+.
+ Finally there is 
+\shape italic
+transfer
+\shape default
+, the use of a model for prediction in a totally disjoint area from the
+ original covariate space.
+ We view these as a continuum: interpolation, extrapolation, transfer; increasin
+g in potential peril each time.
+ We only address extrapolation here.
  It seems clear that the further the new prediction point is from the data
  the worse the performance will be, but there are no hard-and-fast rules
  for what counts as 
@@ -236,49 +259,36 @@ okay
 .
  For various reasons make these small or large extrapolations, either excusing
  or ignoring the potential issues that can occur.
- What is clear is that the exact properties of smoothers have not been explored
- in practice when extrapolation takes place.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-literature review
-\end_layout
-
+ Rather than attempting to define what 
+\begin_inset Quotes eld
 \end_inset
 
-Extrapolation is usually understood to be making predictions outside the
- 
-\shape italic
-range
-\shape default
- of the data, though there is a case for considering gaps within the range
- of data where no observations were made 
+too far
+\begin_inset Quotes erd
+\end_inset
+
+ might mean or bring domain knowledge to bear on this topic (see, e.g., 
 \begin_inset CommandInset citation
-LatexCommand citep
-key "conn2015onextrapolating"
-literal "true"
+LatexCommand cite
+key "dormann2007promising"
 
 \end_inset
 
-.
- 
+ for a review in ecology), here we seek to explore the properties of the
+ models we use.
 \end_layout
 
 \begin_layout Standard
 Here we look at the properties of smoothers in a generalized additive modelling
- 
+ framework 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "wood2017generalized2,ruppert2003semiparametric"
+key "hastie1990generalized,wood2017generalized2,ruppert2003semiparametric"
 literal "false"
 
 \end_inset
 
-context.
+.
  GAMs represent a very flexible modelling framework encompassing a multitude
  of different model structures and a large variety of possible response
  distributions.
@@ -360,7 +370,7 @@ literal "false"
 \end_inset
 
 .
- In general for some smooth 
+ In general, in one dimension, for some smooth 
 \begin_inset Formula $s$
 \end_inset
 
@@ -373,9 +383,9 @@ literal "false"
 
 \begin_layout Standard
 \begin_inset Formula 
-\[
-s(x)=\sum_{k=1}^{K}\beta_{k}b_{k}(x),
-\]
+\begin{equation}
+s(x)=\sum_{k=1}^{K}\beta_{k}b_{k}(x),\label{eq:basis}
+\end{equation}
 
 \end_inset
 
@@ -402,7 +412,7 @@ where
 \begin_inset Formula $s$
 \end_inset
 
-.
+ (examples are given below).
  The influence of the penalty on the model fitting is controlled by smoothing
  parameters, 
 \begin_inset Formula $\bm{\lambda}$
@@ -423,46 +433,33 @@ literal "false"
 \end_inset
 
 .
+ Multivariate smooths can be used either by using multivariate bases or
+ by constructing multivariate smoothers from tensor products of multiple
+ univariate smooths.
+ Details on the mathematical construction of these bases is given below.
 \end_layout
 
 \begin_layout Standard
 In this paper we will investigate the extrapolation properties of some commonly-
 used smoothers, talk about the properties we think are important for a model
- that this going to be used to extrapolate and then propose a solution to
- this issue using B-splines.
+ that this going to be used to extrapolate and then propose a solution which
+ has these properties using B-splines as a basis.
 \end_layout
 
 \begin_layout Standard
 \begin_inset Note Note
 status open
 
-\begin_layout Itemize
-What do we even 
-\shape italic
-mean
-\shape default
- by extrapolation?
-\end_layout
-
-\begin_layout Itemize
-resulting estimates from summary statistics
-\end_layout
-
-\begin_layout Itemize
-interpreting smooths
-\end_layout
-
-\begin_layout Itemize
-uncertainty is important
-\end_layout
-
-\begin_layout Itemize
+\begin_layout Plain Layout
 examples from Gu and Wahba f3 with 2*N(0,1) noise
 \end_layout
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
 \begin_inset Flex Chunk
 status collapsed
 
@@ -1623,7 +1620,7 @@ status open
 
 \begin_layout Plain Layout
 
-fig.width=8, fig.height=5
+fig.width=9, fig.height=3.4
 \end_layout
 
 \end_inset
@@ -1779,12 +1776,12 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-  x1g <- seq(-10, 10, len=100)
+  x1g <- seq(-2, 2, len=100)
 \end_layout
 
 \begin_layout Plain Layout
 
-  x2g <- seq(-10, 10, len=100)
+  x2g <- seq(-2, 2, len=100)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1890,7 +1887,33 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-  par(mfrow=c(1, 2))
+  par(mfrow=c(1, 3))
+\end_layout
+
+\begin_layout Plain Layout
+
+  image(z=pred.mat, x=x1g, y=x2g, asp=1,
+\end_layout
+
+\begin_layout Plain Layout
+
+        col=viridis(50), xlab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1985,7 +2008,7 @@ pred_and_plot(b_tprs)
 
 \begin_layout Plain Layout
 
-b_duchon <- gam(y~s(x1, x2, bs="ds", m=c(1,0.5)), data=dat, method="REML",
+b_duchon <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5)), data=dat, method="REML",
  control=list(keepData=TRUE))
 \end_layout
 
@@ -2015,16 +2038,17 @@ pred_and_plot(b_duchon)
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Plots of the upper (right column) and lower (left column) confidence intervals
- with the mean effect removed for the thin plate regression splines (top
- row) and Duchon splines (bottom row) in a 2D example.
+Plots of the mean effect (left column), lower (centre column) and upper
+ (right column) confidence intervals with the mean effect removed for the
+ thin plate regression splines (top row) and Duchon splines (bottom row)
+ in a 2D example.
  Multivariate normal data were generated in the square with vertices at
  
 \begin_inset Formula $(\pm1,\pm1)$
 \end_inset
 
  and extrapolated out to 
-\begin_inset Formula $(\pm10,\pm10)$
+\begin_inset Formula $(\pm2,\pm2)$
 \end_inset
 
 .
@@ -3050,16 +3074,124 @@ plots of the structure of the B-spline penalty.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Add something here about tensor products?!
-\end_layout
+B-splines can be extened to higher dimensions via tensor products 
+\begin_inset CommandInset citation
+LatexCommand citep
+after "section 2.12"
+key "hastie1990generalized"
+literal "false"
 
 \end_inset
 
+.
+ In this case we use a B-spline for each covariate in the model and construct
+ a multivariate smooth via taking the tensor product of these bases.
+ To construct a two-dimensional basis, starting from a basis expansion as
+ in 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:basis"
+plural "false"
+caps "false"
+noprefix "false"
 
+\end_inset
+
+ for a smooth of some covariate 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+s(x_{1})=\sum_{k=1}^{K}\alpha_{k}a_{k}(x_{1}),\label{eq:tensor-basis}
+\end{equation}
+
+\end_inset
+
+if we let the cofficient 
+\begin_inset Formula $\alpha_{k}$
+\end_inset
+
+ vary with some other covariate, 
+\begin_inset Formula $x_{2}$
+\end_inset
+
+ say, we then cn have a basis expansion for 
+\begin_inset Formula $\alpha_{k}(x_{2})$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\alpha(x_{2})=\sum_{j=1}^{J}\beta_{j}b_{j}(x_{2}),\label{eq:tensor-basis-1}
+\end{equation}
+
+\end_inset
+
+which then gives us the following expansion for a smooth of 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $x_{2}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+s(x_{1},x_{2})=\sum_{k=1}^{K}\sum_{j=1}^{J}\beta_{kj}a_{k}(x_{1})b_{j}(x_{2}).\label{eq:tensor-basis-2}
+\end{equation}
+
+\end_inset
+
+This technique generalizes for any number of covariates, see 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "wood2013straightforward"
+
+\end_inset
+
+ for further technical detail and efficient computational implementation.
+ This tensor product basis is anisotopic (or scale invariant), in the sense
+ that no assumption is made about the relative scale or wigglyness in any
+ direction (contraty to TPRS and Duchon splines which assume the same scale
+ and wigglyness in all directions).
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "fig:b-spline-2d"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows the predictions from B-spline tensor product models fitted the data
+ generated above, and shown for TPRS and Duchon in Figure 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "fig:duchon-tprs-2d"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+ Here we see...
 \end_layout
 
 \begin_layout Standard
@@ -3079,7 +3211,7 @@ status open
 
 \begin_layout Plain Layout
 
-fig.width=8, fig.height=5
+fig.width=8, fig.height=3.05
 \end_layout
 
 \end_inset
@@ -3164,19 +3296,22 @@ pred_and_plot(b_2d)
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Plots of the upper (right column) and lower (left column) confidence intervals
- in a 2D example.
+Plots of the mean effect and upper (right column) and lower (left column)
+ confidence surfaces, minus the mean effect in a 2D example when a tensor
+ product of B-splines was used to smooth the data.
  Multivariate normal data were generated in the square with vertices at
  
 \begin_inset Formula $(\pm1,\pm1)$
 \end_inset
 
  and extrapolated out to 
-\begin_inset Formula $(\pm10,\pm10)$
+\begin_inset Formula $(\pm2,\pm2)$
 \end_inset
 
 .
-\end_layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:b-spline-2d"
 
 \end_inset
 
@@ -3187,16 +3322,22 @@ Plots of the upper (right column) and lower (left column) confidence intervals
 
 
 \end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
 
 \begin_layout Subsection
 Adding additional zero-weight data
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
@@ -3437,11 +3578,17 @@ zero-weight data
 
 \end_layout
 
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
 \begin_layout Subsection
 Adding linear terms again
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Float figure
 wide false
 sideways false
@@ -3541,6 +3688,11 @@ adding linear terms again
 
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Discussion 
 \end_layout
@@ -3555,6 +3707,15 @@ smoothing parameter uncertainty?
 
 \begin_layout Itemize
 interpretation as prior
+\end_layout
+
+\begin_layout Standard
+In many applications we are not simply interested in looking at effect sizes
+ or plots of effects.
+ but may be interested in some summary statistic (e.g., sum of predictions
+ over some area to give an abundance, difference between two scenarios,
+ etc).
+ 
 \end_layout
 
 \begin_layout Section*
