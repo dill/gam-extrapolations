@@ -211,6 +211,98 @@ Introduction
 \end_layout
 
 \begin_layout Standard
+\begin_inset Flex Chunk
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+knitr-setup, include=FALSE, echo=FALSE
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# knitr setup
+\end_layout
+
+\begin_layout Plain Layout
+
+library("knitr")
+\end_layout
+
+\begin_layout Plain Layout
+
+opts_chunk$set(cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE, results="hi
+de") 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Flex Chunk
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+cache=FALSE
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# always load mgcv
+\end_layout
+
+\begin_layout Plain Layout
+
+library(
+\begin_inset Quotes eld
+\end_inset
+
+mgcv
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+library(
+\begin_inset Quotes eld
+\end_inset
+
+viridis
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 Out-of-sample inference from models is fraught with problems.
  Just because a model performs well within the bounds of the current data
  is no guarantee that it will behave well with new data, where covariate
@@ -440,6 +532,428 @@ literal "false"
 \end_layout
 
 \begin_layout Standard
+We use two examples in this paper: in one dimension the test function 
+\begin_inset Formula $f_{3}$
+\end_inset
+
+ from 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gu1991minimizing"
+
+\end_inset
+
+ with 
+\begin_inset Formula $N(0,2)$
+\end_inset
+
+ noise added and in two dimensions a slightly modified version of function
+ 
+\begin_inset Formula $f_{4}$
+\end_inset
+
+ from 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "wood2006onconfidence"
+
+\end_inset
+
+ 
+\begin_inset Formula $N(0,1/2)$
+\end_inset
+
+ noise added.
+ These are shown in Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:test-functions"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex Chunk
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## 1d test function
+\end_layout
+
+\begin_layout Plain Layout
+
+f3 <- function(x2) 0.2 * x2^11 * (10 * (1 - x2))^6 + 10 * (10 * x2)^3 * 
+\end_layout
+
+\begin_layout Plain Layout
+
+              (1 - x2)^10
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# simulate 2d data
+\end_layout
+
+\begin_layout Plain Layout
+
+library(mvtnorm)
+\end_layout
+
+\begin_layout Plain Layout
+
+gsim <- function(x1, x2, scale, sigma1, sigma2){
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+  #f <- 5*dmvnorm(cbind(x1, x2), c(0.8, 0.8), matrix(c(0.02, 0, 0, 0.08), 2,
+ 2)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  #      dmvnorm(cbind(x1, x2), c(0.5, 0.5), matrix(c(0.01, 0, 0, 0.01), 2,
+ 2))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# from Wood 2006
+\end_layout
+
+\begin_layout Plain Layout
+
+  f <- 10*pi*sigma1*sigma2*(
+\end_layout
+
+\begin_layout Plain Layout
+
+		1.2*exp(-(x1-0.3)^2/sigma1^2-(x2-0.3)^2)+
+\end_layout
+
+\begin_layout Plain Layout
+
+	    0.8*exp(-(x1-0.8)^2/sigma1^2-((x2-0.8)^2)/sigma2^2))
+\end_layout
+
+\begin_layout Plain Layout
+
+  #f <- f3(x1) + 2 * sin(pi * x2)# + f3(x1) * sin(pi * x2)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  y <- f + rnorm(length(x1), 0, scale)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  data <- data.frame(y=y, x1=x1, x2=x2, f=f)
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(data)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# find good parameters
+\end_layout
+
+\begin_layout Plain Layout
+
+#par(mfrow=c(5,5))
+\end_layout
+
+\begin_layout Plain Layout
+
+#plotr <- function(s1,s2){
+\end_layout
+
+\begin_layout Plain Layout
+
+#xx <- seq(0, 1, len=200)
+\end_layout
+
+\begin_layout Plain Layout
+
+#gr <- expand.grid(x1=xx, x2=xx)
+\end_layout
+
+\begin_layout Plain Layout
+
+#
+\end_layout
+
+\begin_layout Plain Layout
+
+#two_d_plot <- gsim(gr$x1, gr$x2, 0, s1, s2)
+\end_layout
+
+\begin_layout Plain Layout
+
+#
+\end_layout
+
+\begin_layout Plain Layout
+
+#image(z=matrix(two_d_plot$f, 200, 200), x=xx, y=xx, asp=1,
+\end_layout
+
+\begin_layout Plain Layout
+
+#      col=viridis(50), xlab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+#}
+\end_layout
+
+\begin_layout Plain Layout
+
+#pp <- expand.grid(seq(-0.25, 0.25, len=5), seq(-0.25, 0.25, len=5))
+\end_layout
+
+\begin_layout Plain Layout
+
+#for(p in 1:nrow(pp)){
+\end_layout
+
+\begin_layout Plain Layout
+
+#  plotr(pp[p,1],pp[p,2])
+\end_layout
+
+\begin_layout Plain Layout
+
+#}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+par(mfrow=c(1,2))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(seq(0, 1, len=200), f3(seq(0, 1, len=200)), type=
+\begin_inset Quotes erd
+\end_inset
+
+l
+\begin_inset Quotes erd
+\end_inset
+
+, xlab=
+\begin_inset Quotes erd
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+, ylab=
+\begin_inset Quotes eld
+\end_inset
+
+f(x)
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+xx <- seq(0, 1, len=200)
+\end_layout
+
+\begin_layout Plain Layout
+
+gr <- expand.grid(x1=xx, x2=xx)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+two_d_plot <- gsim(gr$x1, gr$x2, 0, 0.250, 0.125)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+image(z=matrix(two_d_plot$f, 200, 200), x=xx, y=xx, asp=1,
+\end_layout
+
+\begin_layout Plain Layout
+
+      col=viridis(50), xlab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, ylab=
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The two test functions used in the article.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:test-functions"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 In this paper we will investigate the extrapolation properties of some commonly-
 used smoothers, talk about the properties we think are important for a model
  that this going to be used to extrapolate and then propose a solution which
@@ -470,95 +984,6 @@ status open
 
 \begin_layout Plain Layout
 
-knitr-setup, include=FALSE, echo=FALSE
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-
-# knitr setup
-\end_layout
-
-\begin_layout Plain Layout
-
-library("knitr")
-\end_layout
-
-\begin_layout Plain Layout
-
-opts_chunk$set(cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE, results="hi
-de") 
-\end_layout
-
-\end_inset
-
-
-\begin_inset Flex Chunk
-status collapsed
-
-\begin_layout Plain Layout
-
-\begin_inset Argument 1
-status open
-
-\begin_layout Plain Layout
-
-cache=FALSE
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-
-# always load mgcv
-\end_layout
-
-\begin_layout Plain Layout
-
-library(
-\begin_inset Quotes eld
-\end_inset
-
-mgcv
-\begin_inset Quotes erd
-\end_inset
-
-)
-\end_layout
-
-\begin_layout Plain Layout
-
-library(
-\begin_inset Quotes eld
-\end_inset
-
-viridis
-\begin_inset Quotes erd
-\end_inset
-
-)
-\end_layout
-
-\end_inset
-
-
-\begin_inset Flex Chunk
-status collapsed
-
-\begin_layout Plain Layout
-
-\begin_inset Argument 1
-status open
-
-\begin_layout Plain Layout
-
 \end_layout
 
 \end_inset
@@ -569,21 +994,6 @@ status open
 \begin_layout Plain Layout
 
 # set up some simulation options
-\end_layout
-
-\begin_layout Plain Layout
-
-## test function
-\end_layout
-
-\begin_layout Plain Layout
-
-f3 <- function(x2) 0.2 * x2^11 * (10 * (1 - x2))^6 + 10 * (10 * x2)^3 * 
-\end_layout
-
-\begin_layout Plain Layout
-
-              (1 - x2)^10
 \end_layout
 
 \begin_layout Plain Layout
@@ -1611,7 +2021,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -1635,11 +2045,6 @@ fig.width=9, fig.height=3.4
 
 \begin_layout Plain Layout
 
-library(mvtnorm)
-\end_layout
-
-\begin_layout Plain Layout
-
 \end_layout
 
 \begin_layout Plain Layout
@@ -1653,74 +2058,22 @@ set.seed(123)
 
 \begin_layout Plain Layout
 
-# simulate the data
-\end_layout
-
-\begin_layout Plain Layout
-
-gsim <- function(x1, x2, scale){
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-  f <- dmvnorm(cbind(x1, x2), c(0, -1), matrix(c(0.5, 0.2, 0.2, 0.5), 2, 2))
- +
-\end_layout
-
-\begin_layout Plain Layout
-
-        dmvnorm(cbind(x1, x2), c(0.5, 0.5), matrix(c(0.1, 0, 0, 0.1), 2, 2))
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-  y <- f+rnorm(length(x1), 0, scale)
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-  data <- data.frame(y=y, x1=x1, x2=x2, f=f)
-\end_layout
-
-\begin_layout Plain Layout
-
-  return(data)
-\end_layout
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
 # generate some data
 \end_layout
 
 \begin_layout Plain Layout
 
-n <- 200
+n <- 400
 \end_layout
 
 \begin_layout Plain Layout
 
-dat <- gsim(runif(n, -1, 1), runif(n, -1, 1), 2)
+e <- 0.5
+\end_layout
+
+\begin_layout Plain Layout
+
+dat_spat <- gsim(runif(n, 0, 1), runif(n, 0, 1), e, 0.250, 0.125)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1738,7 +2091,7 @@ dat <- gsim(runif(n, -1, 1), runif(n, -1, 1), 2)
 
 \begin_layout Plain Layout
 
-cat("SNR=", with(dat, cor(y, f)), "
+cat("SNR=", with(dat_spat, cor(y, f)), "
 \backslash
 n")
 \end_layout
@@ -1776,12 +2129,11 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-  x1g <- seq(-2, 2, len=100)
+  x1g <- x2g <- seq(-0.5, 1.5, len=100)
 \end_layout
 
 \begin_layout Plain Layout
 
-  x2g <- seq(-2, 2, len=100)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1795,7 +2147,7 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-  zlims <- range(dat$f) + c(-2, 2)
+  zlims <- range(dat_spat$f)# + c(-1, 1)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1810,75 +2162,14 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-  pred.mat_p <- matrix(preds$fit, 100, 100)+2*matrix(preds$se.fit, 100, 100)
+  pred.mat_p <- matrix(preds$fit, 100, 100) + 2*matrix(preds$se.fit, 100,
+ 100)
 \end_layout
 
 \begin_layout Plain Layout
 
-  pred.mat_m <- matrix(preds$fit, 100, 100)-2*matrix(preds$se.fit, 100, 100)
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-  #my_persp <- function(x=x1g, y=x2g, z, theta=30, phi=30, ...){
-\end_layout
-
-\begin_layout Plain Layout
-
-  #  persp(x, y, z, theta=theta, phi=phi, ...)
-\end_layout
-
-\begin_layout Plain Layout
-
-  #}
-\end_layout
-
-\begin_layout Plain Layout
-
-  #my_persp(z=pred.mat, x=x1g, y=x2g, zlim=zlims)
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-  #par(mfrow=c(1, 3))
-\end_layout
-
-\begin_layout Plain Layout
-
-  #image(z=pred.mat, x=x1g, y=x2g, asp=1, col=viridis(50))
-\end_layout
-
-\begin_layout Plain Layout
-
-  #points(model$data$x1, model$data$x2, pch=19, cex=0.5)
-\end_layout
-
-\begin_layout Plain Layout
-
-  #image(z=pred.mat_m, x=x1g, y=x2g, asp=1, col=viridis(50))
-\end_layout
-
-\begin_layout Plain Layout
-
-  #points(model$data$x1, model$data$x2, pch=19, cex=0.5)
-\end_layout
-
-\begin_layout Plain Layout
-
-  #image(z=pred.mat_p, x=x1g, y=x2g, asp=1, col=viridis(50))
-\end_layout
-
-\begin_layout Plain Layout
-
-  #points(model$data$x1, model$data$x2, pch=19, cex=0.5)
+  pred.mat_m <- matrix(preds$fit, 100, 100) - 2*matrix(preds$se.fit, 100,
+ 100)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1918,6 +2209,15 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
+  contour(z=pred.mat, x=x1g, y=x2g, add=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
   image(z=pred.mat_m-pred.mat, x=x1g, y=x2g, asp=1,
 \end_layout
 
@@ -1940,6 +2240,15 @@ pred_and_plot <- function(model){
 \end_inset
 
 )
+\end_layout
+
+\begin_layout Plain Layout
+
+  contour(z=pred.mat_m-pred.mat, x=x1g, y=x2g, add=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \begin_layout Plain Layout
@@ -1970,6 +2279,15 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
+  contour(z=pred.mat_p-pred.mat, x=x1g, y=x2g, add=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 }
 \end_layout
 
@@ -1988,8 +2306,8 @@ pred_and_plot <- function(model){
 
 \begin_layout Plain Layout
 
-b_tprs <- gam(y~s(x1, x2), data=dat,  method="REML", control=list(keepData=TRUE)
-)
+b_tprs <- gam(y~s(x1, x2, k=100), data=dat_spat,  method="ML", control=list(keep
+Data=TRUE))
 \end_layout
 
 \begin_layout Plain Layout
@@ -2008,8 +2326,12 @@ pred_and_plot(b_tprs)
 
 \begin_layout Plain Layout
 
-b_duchon <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5)), data=dat, method="REML",
- control=list(keepData=TRUE))
+b_duchon <- gam(y~s(x1, x2, bs="ds", m=c(1, 0.5), k=100),
+\end_layout
+
+\begin_layout Plain Layout
+
+                data=dat_spat, method="ML", control=list(keepData=TRUE))
 \end_layout
 
 \begin_layout Plain Layout
@@ -2042,16 +2364,15 @@ Plots of the mean effect (left column), lower (centre column) and upper
  (right column) confidence intervals with the mean effect removed for the
  thin plate regression splines (top row) and Duchon splines (bottom row)
  in a 2D example.
- Multivariate normal data were generated in the square with vertices at
- 
-\begin_inset Formula $(\pm1,\pm1)$
+ Multivariate normal data were generated in the square 
+\begin_inset Formula $(0,1)$
 \end_inset
 
- and extrapolated out to 
-\begin_inset Formula $(\pm2,\pm2)$
+ in each dimension and extrapolated out to 
+\begin_inset Formula $(-1,2)$
 \end_inset
 
-.
+ in each dimension.
 \begin_inset CommandInset label
 LatexCommand label
 name "fig:duchon-tprs-2d"
@@ -2589,7 +2910,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Flex Chunk
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -2812,7 +3133,7 @@ blue
 
 \begin_layout Plain Layout
 
-# integration range (-.5, 1.5), even spacing...
+# integration range, even spacing...
 \end_layout
 
 \begin_layout Plain Layout
@@ -3191,7 +3512,7 @@ noprefix "false"
 \end_inset
 
 .
- Here we see...
+ 
 \end_layout
 
 \begin_layout Standard
@@ -3211,7 +3532,7 @@ status open
 
 \begin_layout Plain Layout
 
-fig.width=8, fig.height=3.05
+fig.width=7, fig.height=2.95
 \end_layout
 
 \end_inset
@@ -3221,17 +3542,12 @@ fig.width=8, fig.height=3.05
 
 \begin_layout Plain Layout
 
-# generate some data
+k <- 10
 \end_layout
 
 \begin_layout Plain Layout
 
-n <- 200
-\end_layout
-
-\begin_layout Plain Layout
-
-dat <- gsim(runif(n, -1, 1), runif(n, -1, 1), 2)
+m <- c(3, 1)
 \end_layout
 
 \begin_layout Plain Layout
@@ -3240,15 +3556,12 @@ dat <- gsim(runif(n, -1, 1), runif(n, -1, 1), 2)
 
 \begin_layout Plain Layout
 
+# evenly spaced
 \end_layout
 
 \begin_layout Plain Layout
 
-par(mfrow=c(1,2))
-\end_layout
-
-\begin_layout Plain Layout
-
+xk <- c(-0.6, 0, 1, 1.6)
 \end_layout
 
 \begin_layout Plain Layout
@@ -3261,18 +3574,88 @@ bs
 \begin_inset Quotes erd
 \end_inset
 
-, k=c(10, 10)), data=dat,  method="ML",
+, k=c(k, k), m=m), data=dat_spat,  method="ML",
 \end_layout
 
 \begin_layout Plain Layout
 
-            control=list(keepData=TRUE), knots=list(x=c(-10, 10), y=c(-10,
- 10)))
+            control=list(keepData=TRUE), knots=list(x1=xk, x2=xk))
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \begin_layout Plain Layout
 
 pred_and_plot(b_2d)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# using ti term
+\end_layout
+
+\begin_layout Plain Layout
+
+#b_2d_ti <- gam(y~ti(x1, x2, bs=
+\begin_inset Quotes erd
+\end_inset
+
+bs
+\begin_inset Quotes erd
+\end_inset
+
+, k=c(k, k), m=m)+
+\end_layout
+
+\begin_layout Plain Layout
+
+#                 s(x1, bs=
+\begin_inset Quotes erd
+\end_inset
+
+bs
+\begin_inset Quotes erd
+\end_inset
+
+, k=k, m=m)+
+\end_layout
+
+\begin_layout Plain Layout
+
+#                 s(x2, bs=
+\begin_inset Quotes erd
+\end_inset
+
+bs
+\begin_inset Quotes erd
+\end_inset
+
+, k=k, m=m),
+\end_layout
+
+\begin_layout Plain Layout
+
+#               data=dat_spat,  method="ML",
+\end_layout
+
+\begin_layout Plain Layout
+
+#               control=list(keepData=TRUE), knots=list(x1=xk, x2=xk))
+\end_layout
+
+\begin_layout Plain Layout
+
+#pred_and_plot(b_2d_ti)
 \end_layout
 
 \begin_layout Plain Layout
@@ -3299,16 +3682,6 @@ pred_and_plot(b_2d)
 Plots of the mean effect and upper (right column) and lower (left column)
  confidence surfaces, minus the mean effect in a 2D example when a tensor
  product of B-splines was used to smooth the data.
- Multivariate normal data were generated in the square with vertices at
- 
-\begin_inset Formula $(\pm1,\pm1)$
-\end_inset
-
- and extrapolated out to 
-\begin_inset Formula $(\pm2,\pm2)$
-\end_inset
-
-.
 \begin_inset CommandInset label
 LatexCommand label
 name "fig:b-spline-2d"
@@ -3327,7 +3700,7 @@ name "fig:b-spline-2d"
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Subsection
 Adding additional zero-weight data
@@ -3582,7 +3955,7 @@ zero-weight data
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Subsection
 Adding linear terms again
@@ -3725,10 +4098,12 @@ Acknowledgements
 \begin_layout Standard
 The authors wish to thank Mark Bravington and Natalie Kelly for useful discussio
 ns.
- This material is based upon work supported by the Naval Facilities Engineering
- and Expeditionary Warfare Center under Contract No.
- N39430-17-C-1982 (DLM) and this work began during DLM's visit with Mark
- Bravington under contract for the International Whaling Commission.
+ This work was funded by OPNAV N45 and the SURTASS LFA Settlement Agreement,
+ and being managed by the U.S.
+ Navy's Living Marine Resources program under Contract No.
+ N39430-17-C-1982 (DLM).
+ This work began during DLM's visit with Mark Bravington under contract
+ for the International Whaling Commission.
 \end_layout
 
 \begin_layout Standard
